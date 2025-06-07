@@ -1,0 +1,10 @@
+﻿@{
+    ViewBag.Title = "Verify Email";
+}
+<h2>Verify Your Email</h2>
+<p>We've sent you a verification email. Please check your inbox and click the link to activate your account.</p>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info">@ViewBag.Message</div>
+}

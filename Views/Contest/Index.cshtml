@@ -1,0 +1,45 @@
+﻿@model List<CRICXI.Models.Contest>
+@{
+    ViewBag.Title = "All Contests";
+}
+
+<h2>All Contests</h2>
+
+@if (Model.Count == 0)
+{
+    <p>No contests created yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Match ID</th>
+                <th>Name</th>
+                <th>Entry Fee</th>
+                <th>Max Participants</th>
+                <th>Total Prize</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var contest in Model)
+            {
+                <tr>
+                    <td>@contest.MatchId</td>
+                    <td>@contest.Name</td>
+                    <td>₹@contest.EntryFee</td>
+                    <td>@contest.MaxParticipants</td>
+                    <td>₹@contest.TotalPrize</td>
+                    <td>@contest.CreatedAt.ToLocalTime().ToString("g")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@contest.Id" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Join" asp-route-contestId="@contest.Id" class="btn btn-sm btn-success">Join</a>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}

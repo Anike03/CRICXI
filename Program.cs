@@ -25,6 +25,14 @@ builder.Services.AddScoped(serviceProvider =>
 // 🔧 Register custom services
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<ContestService>();
+builder.Services.AddScoped<ScoringService>();
+builder.Services.AddScoped<LeaderboardService>();
+builder.Services.AddScoped<FantasyTeamService>();
+builder.Services.AddScoped<CricbuzzApiService>();
+builder.Services.AddScoped<MatchService>();
+
+
 
 // 🔧 MVC and session
 builder.Services.AddControllersWithViews();

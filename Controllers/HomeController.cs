@@ -1,32 +1,24 @@
 using System.Diagnostics;
 using CRICXI.Models;
 using Microsoft.AspNetCore.Mvc;
+using CRICXI.Services;
+using Microsoft.AspNetCore.Mvc;
 
-namespace CRICXI.Controllers
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly MatchService _matchService;
+
+    public HomeController(MatchService matchService)
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
-
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        _matchService = matchService;
     }
+
+    public async Task<IActionResult> Index()
+    {
+        var matches = await _matchService.GetAll();
+        var upcoming = matches.Where(m => m.Status == "Upcoming").ToList();
+        return View(upcoming);
+    }
+
+    public IActionResult Privacy() => View();
 }

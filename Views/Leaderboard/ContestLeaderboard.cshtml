@@ -1,0 +1,28 @@
+﻿@model List<CRICXI.Models.LeaderboardEntry>
+@{
+    ViewBag.Title = "Leaderboard";
+}
+
+<h2>🏆 Contest Leaderboard</h2>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Total Points</th>
+            <th>Prize</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entry in Model)
+        {
+            <tr>
+                <td>@entry.Rank</td>
+                <td>@entry.Username</td>
+                <td>@entry.TotalPoints</td>
+                <td>@entry.PrizeAmount</td>
+            </tr>
+        }
+    </tbody>
+</table>

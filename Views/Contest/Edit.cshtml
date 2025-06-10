@@ -1,0 +1,38 @@
+﻿@model CRICXI.Models.Contest
+@{
+    ViewBag.Title = "Edit Contest";
+}
+
+<h2>Edit Contest</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label>Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Match ID</label>
+        <input asp-for="MatchId" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Entry Fee</label>
+        <input asp-for="EntryFee" type="number" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Max Participants</label>
+        <input asp-for="MaxParticipants" type="number" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Total Prize</label>
+        <input asp-for="TotalPrize" type="number" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Save</button>
+    <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
+</form>

@@ -1,0 +1,30 @@
+﻿@model CRICXI.Models.Contest
+@{
+    ViewBag.Title = "Delete Contest";
+}
+
+<h2>Delete Contest</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this contest?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">Match ID</dt>
+    <dd class="col-sm-9">@Model.MatchId</dd>
+
+    <dt class="col-sm-3">Entry Fee</dt>
+    <dd class="col-sm-9">@Model.EntryFee</dd>
+
+    <dt class="col-sm-3">Total Prize</dt>
+    <dd class="col-sm-9">@Model.TotalPrize</dd>
+</dl>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

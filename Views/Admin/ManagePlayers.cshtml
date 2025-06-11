@@ -1,0 +1,71 @@
+﻿@model List<CRICXI.Models.Player>
+@{
+    ViewBag.Title = "Assign Player Roles";
+    var matchId = ViewBag.MatchId;
+}
+
+<h2>Manage Players for Match</h2>
+
+<form asp-action="UpdateRoles" method="post">
+    <input type="hidden" name="matchId" value="@matchId" />
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Player Name</th>
+                <th>Team</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.Name</td>
+                    <td>@p.Team</td>
+                    <td>
+                        <select name="roles[@p.Id]" class="form-control">
+                            @if (p.Role == "Batsman")
+                            {
+                                <option value="Batsman" selected>Batsman</option>
+                            }
+                            else
+                            {
+                                <option value="Batsman">Batsman</option>
+                            }
+
+                            @if (p.Role == "Bowler")
+                            {
+                                <option value="Bowler" selected>Bowler</option>
+                            }
+                            else
+                            {
+                                <option value="Bowler">Bowler</option>
+                            }
+
+                            @if (p.Role == "AllRounder")
+                            {
+                                <option value="AllRounder" selected>AllRounder</option>
+                            }
+                            else
+                            {
+                                <option value="AllRounder">AllRounder</option>
+                            }
+
+                            @if (p.Role == "WicketKeeper")
+                            {
+                                <option value="WicketKeeper" selected>WicketKeeper</option>
+                            }
+                            else
+                            {
+                                <option value="WicketKeeper">WicketKeeper</option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Save Roles</button>
+</form>

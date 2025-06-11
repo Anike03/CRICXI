@@ -1,50 +1,51 @@
-﻿@{
+﻿@model List<CRICXI.Models.Player>
+@{
     ViewBag.Title = "Create Fantasy Team";
-    var players = ViewBag.Players as List<CRICXI.Models.Player>;
+    var matchId = ViewBag.MatchId;
 }
-<h2>Select 11 Players</h2>
 
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger">@ViewBag.Error</div>
-}
+<h2>Create Fantasy Team</h2>
 
 <form method="post">
-    <input type="hidden" name="matchId" value="@ViewBag.MatchId" />
-    <input type="hidden" name="contestId" value="@ViewBag.ContestId" />
+    <input type="hidden" name="matchId" value="@matchId" />
 
-    <div class="row">
-        @foreach (var p in players)
-        {
-            <div class="col-md-4">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="selectedPlayers" value="@p.Id" id="p_@p.Id" />
-                    <label class="form-check-label" for="p_@p.Id">@p.Name (@p.Role)</label>
-                </div>
-            </div>
-        }
+    <div class="mb-3">
+        <label>Team Name</label>
+        <input type="text" name="teamName" class="form-control" required />
     </div>
 
-    <hr />
-    <div class="form-group">
-        <label>Select Captain:</label>
-        <select class="form-control" name="captainId">
-            @foreach (var p in players)
+    <h4>Select 11 Players</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Player</th>
+                <th>Team</th>
+                <th>Role</th>
+                <th>Select</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
             {
-                <option value="@p.Id">@p.Name</option>
+                <tr>
+                    <td>@p.Name</td>
+                    <td>@p.Team</td>
+                    <td>@p.Role</td>
+                    <td>
+                        <input type="checkbox" name="selectedPlayers" value="@p.Id" />
+                    </td>
+                </tr>
             }
-        </select>
+        </tbody>
+    </table>
+
+    <h4>Captain & Vice-Captain</h4>
+    <div class="mb-3">
+        <label>Captain Player ID:</label>
+        <input type="text" name="captainId" class="form-control" required />
+        <label>Vice-Captain Player ID:</label>
+        <input type="text" name="viceCaptainId" class="form-control" required />
     </div>
 
-    <div class="form-group">
-        <label>Select Vice-Captain:</label>
-        <select class="form-control" name="viceCaptainId">
-            @foreach (var p in players)
-            {
-                <option value="@p.Id">@p.Name</option>
-            }
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-success mt-3">Submit Team</button>
+    <button type="submit" class="btn btn-success">Submit Team</button>
 </form>

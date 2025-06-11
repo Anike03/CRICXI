@@ -2,6 +2,7 @@
     ViewBag.Title = "Join Contest";
     var match = ViewBag.Match as CRICXI.Models.Match;
     var contest = ViewBag.Contest as CRICXI.Models.Contest;
+    var teams = ViewBag.Teams as List<CRICXI.Models.FantasyTeam>;
 }
 
 <h2>Join Contest: @contest.Name</h2>
@@ -11,18 +12,29 @@
     Entry Fee: ₹@contest.EntryFee | Prize Pool: ₹@contest.TotalPrize
 </div>
 
-<form method="post">
-    <input type="hidden" name="contestId" value="@contest.Id" />
-
-    <div class="mb-3">
-        <label class="form-label">Select Fantasy Team</label>
-        <select name="teamId" class="form-select">
-            <option value="">-- Select Your Team --</option>
-            <!-- TODO: populate from user’s created teams -->
-            <option value="team123">Demo Team A</option>
-            <option value="team456">Demo Team B</option>
-        </select>
+@if (teams == null || teams.Count == 0)
+{
+    <div class="alert alert-warning">
+        You have no fantasy team created for this match.
+        <a asp-controller="FantasyTeam" asp-action="Create" asp-route-matchId="@match.Id">Create Team Now</a>
     </div>
+}
+else
+{
+    <form method="post">
+        <input type="hidden" name="contestId" value="@contest.Id" />
 
-    <button type="submit" class="btn btn-success">Join Contest</button>
-</form>
+        <div class="mb-3">
+            <label>Select Fantasy Team:</label>
+            <select name="teamId" class="form-control" required>
+                <option value="">-- Select --</option>
+                @foreach (var t in teams)
+                {
+                    <option value="@t.Id">@t.TeamName</option>
+                }
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">Join Contest</button>
+    </form>
+}

@@ -1,0 +1,33 @@
+﻿@model CRICXI.Models.Contest
+@{
+    ViewBag.Title = "Create Contest";
+    var match = ViewBag.Match as CRICXI.Models.Match;
+}
+
+<h2>Create Contest for: @match.TeamA vs @match.TeamB</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="MatchId" />
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Contest Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EntryFee" class="form-label">Entry Fee (₹)</label>
+        <input asp-for="EntryFee" type="number" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MaxParticipants" class="form-label">Max Participants</label>
+        <input asp-for="MaxParticipants" type="number" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TotalPrize" class="form-label">Total Prize (₹)</label>
+        <input asp-for="TotalPrize" type="number" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Create</button>
+</form>

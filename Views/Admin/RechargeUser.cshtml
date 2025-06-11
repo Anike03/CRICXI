@@ -1,0 +1,19 @@
+﻿@model CRICXI.Models.User
+
+@{
+    ViewBag.Title = "Recharge User Wallet";
+}
+
+<h2>Recharge Wallet for @Model.Username</h2>
+
+<form method="post">
+    <input type="hidden" name="userId" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label>Recharge Amount (₹):</label>
+        <input type="number" name="amount" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-success">Recharge Wallet</button>
+    <a asp-action="AllUsers" class="btn btn-secondary">Back to Users</a>
+</form>

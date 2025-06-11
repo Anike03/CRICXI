@@ -1,9 +1,18 @@
-﻿namespace CRICXI.Models
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace CRICXI.Models
 {
     public class Player
     {
-        public string Id { get; set; }           // Unique ID (could match API ID)
-        public string Name { get; set; }         // Player name (e.g., Virat Kohli)
-        public string Role { get; set; }         // Role: Batsman, Bowler, All-Rounder, Wicket-Keeper
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
+
+        public string? CricbuzzPlayerId { get; set; }
+        public string? CricbuzzMatchId { get; set; }
+        public string? Name { get; set; }
+        public string? Team { get; set; }
+        public string? Role { get; set; }
     }
 }

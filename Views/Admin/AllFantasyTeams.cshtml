@@ -1,0 +1,31 @@
+﻿@model List<CRICXI.Models.FantasyTeam>
+
+@{
+    ViewBag.Title = "All Fantasy Teams";
+}
+
+<h2>All Fantasy Teams</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Team Name</th>
+            <th>Match ID</th>
+            <th>Players Count</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var team in Model)
+        {
+            <tr>
+                <td>@team.Username</td>
+                <td>@team.TeamName</td>
+                <td>@team.MatchId</td>
+                <td>@team.PlayerIds.Count()</td>  <!-- FIXED -->
+                <td>@team.CreatedAt.ToLocalTime()</td>
+            </tr>
+        }
+    </tbody>
+</table>

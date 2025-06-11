@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using CRICXI.Models;
 using CRICXI.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 
 namespace CRICXI.Controllers
 {
@@ -16,6 +19,34 @@ namespace CRICXI.Controllers
             _emailService = emailService;
         }
 
+        // ✅ Standard Login (username + password)
+        [HttpGet]
+        public IActionResult Login() => View();
+
+        [HttpPost]
+        public async Task<IActionResult> Login(string username, string password)
+        {
+            var user = await _userService.Authenticate(username, password);
+            if (user == null)
+            {
+                ViewBag.Error = "Invalid username or password.";
+                return View();
+            }
+
+            if (!user.IsEmailConfirmed)
+            {
+                ViewBag.Error = "Please verify your email before logging in.";
+                return View();
+            }
+
+            HttpContext.Session.SetString("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username);
+            HttpContext.Session.SetString("Role", user.Role);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // ✅ Registration (only for Users)
         [HttpGet]
         public IActionResult Register() => View();
 
@@ -33,64 +64,28 @@ namespace CRICXI.Controllers
             var token = Guid.NewGuid().ToString();
             user.EmailVerificationToken = token;
             user.IsEmailConfirmed = false;
+            user.Role = "User";
 
             var success = await _userService.Register(user, password);
             if (!success)
             {
-                ViewBag.Error = "Username or Email already in use!";
+                ViewBag.Error = "Username or Email already in use.";
                 return View();
             }
 
             var verificationUrl = Url.Action("VerifyEmail", "Auth", new { token = token }, Request.Scheme);
             string htmlContent = $@"
                 <h3>Welcome to CRICXI!</h3>
-                <p>Thank you for registering.</p>
-                <p>Please verify your email by clicking the link below:</p>
+                <p>Click the link below to verify your email:</p>
                 <p><a href='{verificationUrl}'>Verify My Email</a></p>";
 
-            await _emailService.SendEmailAsync(user.Email, "CRICXI Email Verification", htmlContent);
+            await _emailService.SendEmailAsync(user.Email, "Email Verification", htmlContent);
 
             ViewBag.Message = "Registration successful. Please check your email to verify your account.";
             return View("VerifyNotice");
         }
 
-        [HttpGet]
-        public IActionResult Login() => View();
-
-        [HttpPost]
-        public async Task<IActionResult> Login(string username, string password)
-        {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-            {
-                ViewBag.Error = "Username and Password are required.";
-                return View();
-            }
-
-            var user = await _userService.Authenticate(username.Trim(), password);
-            if (user == null)
-            {
-                ViewBag.Error = "Invalid credentials.";
-                return View();
-            }
-
-            if (!user.IsEmailConfirmed)
-            {
-                ViewBag.Error = "Please verify your email before logging in.";
-                return View();
-            }
-
-            HttpContext.Session.SetString("Username", user.Username);
-            HttpContext.Session.SetString("Role", user.Role);
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpGet]
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
-        }
-
+        // ✅ Email Verification
         [HttpGet]
         public async Task<IActionResult> VerifyEmail(string token)
         {
@@ -103,6 +98,54 @@ namespace CRICXI.Controllers
             await _userService.Update(user);
 
             return View("VerifySuccess");
+        }
+
+        // ✅ External Login Entry Point (Google, Facebook, X, Instagram)
+        [HttpGet]
+        public IActionResult ExternalLogin(string provider)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Auth");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, provider);
+        }
+
+        // ✅ External Login Callback
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!result.Succeeded)
+                return RedirectToAction("Login");
+
+            var externalEmail = result.Principal.FindFirstValue(ClaimTypes.Email);
+            var externalName = result.Principal.Identity.Name;
+
+            var user = await _userService.GetByEmail(externalEmail);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Username = externalName,
+                    Email = externalEmail,
+                    IsEmailConfirmed = true, // ✅ No verification needed for OAuth
+                    Role = "User"
+                };
+                await _userService.RegisterWithoutPassword(user);
+            }
+
+            HttpContext.Session.SetString("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username);
+            HttpContext.Session.SetString("Role", user.Role);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // ✅ Logout
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
         }
     }
 }

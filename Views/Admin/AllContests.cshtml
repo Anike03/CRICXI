@@ -1,0 +1,30 @@
+﻿@model List<CRICXI.Models.Contest>
+@{
+    ViewBag.Title = "All Contests";
+}
+
+<h2>All Contests</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Match ID</th>
+            <th>Name</th>
+            <th>Entry Fee</th>
+            <th>Max Participants</th>
+            <th>Total Prize</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contest in Model)
+        {
+            <tr>
+                <td>@contest.MatchId</td>
+                <td>@contest.Name</td>
+                <td>₹@contest.EntryFee</td>
+                <td>@contest.MaxParticipants</td>
+                <td>₹@contest.TotalPrize</td>
+            </tr>
+        }
+    </tbody>
+</table>

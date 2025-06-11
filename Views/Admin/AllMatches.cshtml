@@ -1,0 +1,32 @@
+﻿@model List<CRICXI.Models.Match>
+@{
+    ViewBag.Title = "All Matches";
+}
+
+<h2>All Matches</h2>
+
+<a asp-action="SyncMatches" class="btn btn-primary mb-3">Sync Matches From Cricbuzz API</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Match</th>
+            <th>Teams</th>
+            <th>Start Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var match in Model)
+        {
+            <tr>
+                <td>@match.MatchDesc</td>
+                <td>@match.TeamA vs @match.TeamB</td>
+                <td>@match.StartDate</td>
+                <td>
+                    <a asp-action="CreateContest" asp-route-matchId="@match.Id" class="btn btn-sm btn-success">Create Contest</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

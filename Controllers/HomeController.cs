@@ -1,24 +1,39 @@
-using System.Diagnostics;
-using CRICXI.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using CRICXI.Services;
-using Microsoft.AspNetCore.Mvc;
 
-public class HomeController : Controller
+namespace CRICXI.Controllers
 {
-    private readonly MatchService _matchService;
-
-    public HomeController(MatchService matchService)
+    public class HomeController : Controller
     {
-        _matchService = matchService;
-    }
+        private readonly UserService _userService;
 
-    public async Task<IActionResult> Index()
-    {
-        var matches = await _matchService.GetAll();
-        var upcoming = matches.Where(m => m.Status == "Upcoming").ToList();
-        return View(upcoming);
-    }
+        public HomeController(UserService userService)
+        {
+            _userService = userService;
+        }
 
-    public IActionResult Privacy() => View();
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWalletBalance()
+        {
+            var username = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(username))
+            {
+                return Json("0");
+            }
+
+            var user = await _userService.GetByUsername(username);
+            if (user == null)
+            {
+                return Json("0");
+            }
+
+            // Format properly for dollar display
+            return Json(user.WalletBalance.ToString("0.00"));
+        }
+    }
 }

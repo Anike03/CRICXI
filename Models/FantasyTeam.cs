@@ -1,5 +1,8 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CRICXI.Models
 {
@@ -7,20 +10,27 @@ namespace CRICXI.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string UserId { get; set; }
+        public string? Username { get; set; }
+        public string? MatchId { get; set; }
+        public string? TeamName { get; set; }
 
-        public string MatchId { get; set; } // Match from external API
+        public List<PlayerSelection> Players { get; set; } = new List<PlayerSelection>();
 
-        public string ContestId { get; set; } // Contest the user joined
-
-        public List<string> PlayerIds { get; set; } = new List<string>();
-
-        public string CaptainId { get; set; }
-
-        public string ViceCaptainId { get; set; }
+        public string? CaptainId { get; set; }
+        public string? ViceCaptainId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public IEnumerable<string> PlayerIds => Players.Select(p => p.PlayerId ?? string.Empty);
+    }
+
+    public class PlayerSelection
+    {
+        public string? PlayerId { get; set; }
+        public string? PlayerName { get; set; }
+        public string? Role { get; set; }
+        public string? Team { get; set; }
     }
 }

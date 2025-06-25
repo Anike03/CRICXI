@@ -1,24 +1,79 @@
 ﻿@{
-    ViewBag.Title = "Admin Login";
+    ViewData["Title"] = "Admin Login";
+    Layout = null; // Or use "_Layout" if you want the full navbar
 }
 
-<h2>Admin Login</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CRICXI</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body {
+            background-image: url('/images/logo.png'); /* 🔁 Replace with your image path */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
 
-<form method="post">
-    <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="email" class="form-control" required />
+        .login-box {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+            .login-box h4 {
+                font-weight: bold;
+            }
+
+        .form-control {
+            border-radius: 6px;
+        }
+
+        .btn-danger {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="text-center mb-4">
+            <h4 class="text-danger"><i class="fas fa-lock me-2"></i>Admin Login</h4>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Error</div>
+        }
+
+        <form asp-action="Login" method="post">
+            <div class="form-group mb-3">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-danger w-100">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </button>
+        </form>
     </div>
 
-    <div class="form-group">
-        <label>Password</label>
-        <input type="password" name="password" class="form-control" required />
-    </div>
-
-    <button type="submit" class="btn btn-danger">Login as Admin</button>
-</form>
-
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger mt-2">@ViewBag.Error</div>
-}
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

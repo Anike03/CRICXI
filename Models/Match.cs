@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System;
 
 namespace CRICXI.Models
 {
@@ -7,13 +8,29 @@ namespace CRICXI.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string CricbuzzMatchId { get; set; } // Unique ID from API
-        public string TeamA { get; set; }
-        public string TeamB { get; set; }
-        public string MatchDesc { get; set; }
-        public string StartDate { get; set; }
-        public string Status { get; set; } // Upcoming, Live, Completed
+        public string? CricbuzzMatchId { get; set; }
+        public string? TeamA { get; set; }
+        public string? TeamB { get; set; }
+        public string? MatchDesc { get; set; }
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        public DateTime StartDate { get; set; }
+
+        public string? Status { get; set; }
+
+        // Toronto time display properties
+        [BsonIgnore]
+        public string TorontoTime =>
+            TimeZoneInfo.ConvertTimeFromUtc(StartDate,
+                TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"))
+                .ToString("hh:mm:ss tt");
+
+        [BsonIgnore]
+        public string TorontoDate =>
+            TimeZoneInfo.ConvertTimeFromUtc(StartDate,
+                TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"))
+                .ToString("yyyy-MM-dd");
     }
 }

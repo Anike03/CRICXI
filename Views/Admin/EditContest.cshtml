@@ -1,0 +1,35 @@
+﻿@model CRICXI.Models.Contest
+@{
+    ViewData["Title"] = "Edit Contest";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center text-warning mb-4">Edit Contest</h2>
+
+    <form asp-action="EditContest" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Contest Name</label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="EntryFee" class="form-label">Entry Fee (₹)</label>
+            <input asp-for="EntryFee" class="form-control" type="number" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MaxParticipants" class="form-label">Max Participants</label>
+            <input asp-for="MaxParticipants" class="form-control" type="number" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TotalPrize" class="form-label">Total Prize (₹)</label>
+            <input asp-for="TotalPrize" class="form-control" type="number" />
+        </div>
+
+        <button type="submit" class="btn btn-success">Save Changes</button>
+        <a asp-action="AllContests" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>

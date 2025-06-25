@@ -1,14 +1,11 @@
 ﻿using CRICXI.Models;
 using CRICXI.Services;
-
 using MongoDB.Driver;
-
 using Microsoft.AspNetCore.Authentication.Cookies;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔧 Load MongoDB settings
+// 🔧 Load MongoDB settings from appsettings.json
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDBSettings"));
 
 builder.Services.AddSingleton<IMongoClient>(sp =>
@@ -24,7 +21,7 @@ builder.Services.AddScoped(serviceProvider =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
-// 🔧 Register all services
+// 🔧 Register services
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ContestService>();
@@ -35,55 +32,39 @@ builder.Services.AddScoped<CricbuzzApiService>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<ContestEntryService>();
 builder.Services.AddScoped<PlayerService>();
+builder.Services.AddScoped<CricketNewsService>();
 
-// 🔧 MVC and session
+
+// 🔧 Add HttpClientFactory services
+builder.Services.AddHttpClient();  // 👈 Add this line to register IHttpClientFactory
+
+// 🔧 Add controllers + session
+builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
 
-// 🔧 Authentication & OAuth
+// 🔧 Authentication basic (Cookie based only for Admin login right now)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddCookie()
+.AddCookie();
 
-.AddGoogle(options =>
+// 🔧 Setup CORS to allow frontend React (Vite) connection
+builder.Services.AddCors(options =>
 {
-    options.ClientId = builder.Configuration["OAuth:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"];
-})
-
-.AddFacebook(options =>
-{
-    options.AppId = builder.Configuration["OAuth:Facebook:AppId"];
-    options.AppSecret = builder.Configuration["OAuth:Facebook:AppSecret"];
-})
-
-.AddOAuth("Twitter", options =>
-{
-    options.ClientId = builder.Configuration["OAuth:Twitter:ClientId"];
-    options.ClientSecret = builder.Configuration["OAuth:Twitter:ClientSecret"];
-    options.CallbackPath = "/signin-twitter";
-    options.AuthorizationEndpoint = "https://twitter.com/i/oauth2/authorize";
-    options.TokenEndpoint = "https://api.twitter.com/2/oauth2/token";
-    options.UserInformationEndpoint = "https://api.twitter.com/2/users/me";
-    options.SaveTokens = true;
-})
-
-.AddOAuth("Instagram", options =>
-{
-    options.ClientId = builder.Configuration["OAuth:Instagram:ClientId"];
-    options.ClientSecret = builder.Configuration["OAuth:Instagram:ClientSecret"];
-    options.CallbackPath = "/signin-instagram";
-    options.AuthorizationEndpoint = "https://api.instagram.com/oauth/authorize";
-    options.TokenEndpoint = "https://api.instagram.com/oauth/access_token";
-    options.UserInformationEndpoint = "https://graph.instagram.com/me";
-    options.SaveTokens = true;
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // 🔧 Your frontend React dev server URL
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
-// 🔧 Build pipeline
 var app = builder.Build();
 
+// 🔧 Error handling
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -94,23 +75,21 @@ else
     app.UseHsts();
 }
 
+// 🔧 HTTP pipeline
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
+app.UseCors("AllowReact");
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 🔧 Routing
-app.MapControllerRoute(
-    name: "verify-email",
-    pattern: "verify/{token?}",
-    defaults: new { controller = "Auth", action = "VerifyEmail" }
-);
+// 🔧 Map both API routes & optional Razor MVC
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

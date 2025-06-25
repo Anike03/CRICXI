@@ -1,45 +1,134 @@
 ﻿@model List<CRICXI.Models.Contest>
 @{
-    ViewBag.Title = "All Contests";
+    ViewData["Title"] = "All Contests";
+    Layout = "_Layout";
 }
 
-<h2>All Contests</h2>
+<style>
+    body {
+        background-image: url('/images/bgimage.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+        font-family: 'Segoe UI', sans-serif;
+        color: #333;
+    }
 
-@if (Model.Count == 0)
-{
-    <p>No contests created yet.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Match ID</th>
-                <th>Name</th>
-                <th>Entry Fee</th>
-                <th>Max Participants</th>
-                <th>Total Prize</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var contest in Model)
-            {
-                <tr>
-                    <td>@contest.MatchId</td>
-                    <td>@contest.Name</td>
-                    <td>₹@contest.EntryFee</td>
-                    <td>@contest.MaxParticipants</td>
-                    <td>₹@contest.TotalPrize</td>
-                    <td>@contest.CreatedAt.ToLocalTime().ToString("g")</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@contest.Id" class="btn btn-sm btn-info">Details</a>
-                        <a asp-action="Join" asp-route-contestId="@contest.Id" class="btn btn-sm btn-success">Join</a>
-                    </td>
+    .overlay {
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-top: 3rem;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
 
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    h2 {
+        font-weight: 700;
+        color: #d32f2f;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    th {
+        background-color: #f44336;
+        color: white;
+        padding: 12px;
+        text-align: center;
+    }
+
+    td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+        font-size: 0.95rem;
+    }
+
+    .btn-details {
+        background-color: #388e3c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .btn-details:hover {
+            background-color: #2e7d32;
+            text-decoration: none;
+            color: #fff;
+        }
+
+    .no-data {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #666;
+        padding: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        table
+
+    {
+        font-size: 0.9rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    }
+</style>
+
+<div class="container">
+    <div class="overlay">
+        <h2>All Contests</h2>
+
+        @if (!Model.Any())
+        {
+            <div class="no-data">No contests available at the moment.</div>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Match</th>
+                        <th>Start Time</th>
+                        <th>Entry Fee</th>
+                        <th>Max Participants</th>
+                        <th>Total Prize</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var contest in Model)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(contest.TeamA) || string.IsNullOrWhiteSpace(contest.TeamB) ? "N/A" : $"{contest.TeamA} vs {contest.TeamB}")</td>
+                            <td>@(contest.StartDate.HasValue? contest.StartDate.Value.ToLocalTime().ToString("dd MMM yyyy hh:mm tt") : "N/A")</td>
+                            <td>$@contest.EntryFee</td>
+                            <td>@contest.MaxParticipants</td>
+                            <td>$@contest.TotalPrize</td>
+                            <td>@contest.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@contest.Id" class="btn-details">Details</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

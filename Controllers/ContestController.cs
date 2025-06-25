@@ -129,9 +129,49 @@ namespace CRICXI.Controllers
         {
             if (!IsAdmin()) return Unauthorized();
 
+            var match = await _matchService.GetById(contest.MatchId);
+            if (match != null)
+            {
+                contest.TeamA = match.TeamA;
+                contest.TeamB = match.TeamB;
+                contest.StartDate = match.StartDate;
+            }
+
             await _contestService.Create(contest);
             return RedirectToAction("AdminContests");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
+        {
+            var contest = await _contestService.GetById(id);
+            if (contest == null) return NotFound();
+            return View(contest);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(string id)
+        {
+            var contest = await _contestService.GetById(id);
+            if (contest == null) return NotFound();
+            return View(contest);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(string id, Contest updated)
+        {
+            if (id != updated.Id) return BadRequest();
+            await _contestService.Update(id, updated);
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string id)
+        {
+            await _contestService.Delete(id);
+            return RedirectToAction("Index");
+        }
+
 
         //---------------------- SECURITY ----------------------
 

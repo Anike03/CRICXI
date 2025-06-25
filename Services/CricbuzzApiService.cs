@@ -1,5 +1,5 @@
-﻿using System.Net.Http.Headers;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using System.Net.Http.Headers;
 
 namespace CRICXI.Services
 {
@@ -9,6 +9,8 @@ namespace CRICXI.Services
         private readonly string _baseUrl;
         private readonly string _apiKey;
         private readonly string _host;
+        private readonly string _matchEndpoint;
+        private readonly string _newsEndpoint;
 
         public CricbuzzApiService(IConfiguration config)
         {
@@ -16,45 +18,56 @@ namespace CRICXI.Services
             _baseUrl = config["CricbuzzApi:BaseUrl"];
             _apiKey = config["CricbuzzApi:ApiKey"];
             _host = config["CricbuzzApi:Host"];
+            _matchEndpoint = config["CricbuzzApi:Endpoint"];
+            _newsEndpoint = config["CricketNewsApi:Endpoint"];
 
-            _client.DefaultRequestHeaders.Add("x-rapidapi-key", _apiKey);
-            _client.DefaultRequestHeaders.Add("x-rapidapi-host", _host);
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        // ✅ Fetch recent matches (for results)
-        public async Task<string> GetRecentMatchesAsync()
-        {
-            var requestUrl = $"{_baseUrl}/matches/v1/recent";
-            var response = await _client.GetAsync(requestUrl);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        // ✅ Fetch upcoming matches (for contests)
+        // ✅ Upcoming Matches (used for contests)
         public async Task<string> GetUpcomingMatchesAsync()
         {
-            var requestUrl = $"{_baseUrl}/matches/v1/upcoming";
-            var response = await _client.GetAsync(requestUrl);
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/matches/upcoming");
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", _matchEndpoint);
+
+            var response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
-        // ✅ Fetch full match center details (including live score + players)
+        // ✅ Recent Matches (used for results)
+        public async Task<string> GetRecentMatchesAsync()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/matches/recent");
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", _matchEndpoint);
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        // ✅ Live Score or Players
         public async Task<string> GetLiveScoreAsync(string matchId)
         {
-            var requestUrl = $"{_baseUrl}/mcenter/v1/{matchId}";
-            var response = await _client.GetAsync(requestUrl);
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/mcenter/v1/{matchId}");
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", _matchEndpoint);
+
+            var response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
-        // ✅ Alias for player sync (same endpoint reused)
+        // ✅ Alias for Player Data
         public async Task<string> GetPlayersByMatchAsync(string matchId)
         {
-            var requestUrl = $"{_baseUrl}/mcenter/v1/{matchId}";
-            var response = await _client.GetAsync(requestUrl);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            return await GetLiveScoreAsync(matchId);
         }
     }
 }

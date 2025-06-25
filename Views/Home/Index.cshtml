@@ -1,17 +1,331 @@
-﻿@{
+﻿
+@{
     ViewData["Title"] = "CRICXI Fantasy App";
 }
 
-<h1>🎯 Fantasy App is Running Successfully!</h1>
+<style>
+    body {
+    background-image: url('/images/bck2.jpg');  /* Remove "wwwroot" */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: white;
+    position: relative;
+}
 
-<p>
-    Your backend is fully deployed and working! ✅
-</p>
+    body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: -1;
+    }
 
-<p>
-    Use Admin Panel to sync matches and players.<br />
-    Create contests, build fantasy teams, and generate leaderboards 🚀
-</p>
+    .container {
+        padding-top: 2rem;
+        position: relative;
+        z-index: 1;
+    }
 
-<a class="btn btn-primary" asp-controller="Match" asp-action="Upcoming">View Upcoming Matches</a>
-<a class="btn btn-success" asp-controller="Contest" asp-action="Index">View Contests</a>
+    .header-logo {
+        height: 80px;
+        margin-bottom: 1rem;
+    }
+
+    .hero-section {
+        text-align: center;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 10px;
+    }
+
+    .card {
+        background-color: rgba(0, 0, 0, 0.7);
+        border: none;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+        background-color: rgba(200, 0, 0, 0.7);
+        color: white;
+        font-weight: bold;
+        border-bottom: none;
+    }
+
+    .btn-primary {
+        background-color: #d32f2f;
+        border-color: #b71c1c;
+    }
+
+    .btn-primary:hover {
+        background-color: #b71c1c;
+        border-color: #8e0000;
+    }
+
+    .btn-success {
+        background-color: #388e3c;
+        border-color: #2e7d32;
+    }
+
+    .btn-success:hover {
+        background-color: #2e7d32;
+        border-color: #1b5e20;
+    }
+
+    .match-card, .news-card {
+        transition: transform 0.3s;
+    }
+
+    .match-card:hover, .news-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .news-title {
+        color: #ff9800;
+    }
+
+    .wallet-balance {
+        font-size: 1.2rem;
+        color: #4caf50;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container">
+    <div class="container py-4">
+        <div class="text-center mb-4">
+            <h2 class="text-uppercase fw-bold" style="letter-spacing: 2px;">Legendary Players</h2>
+        </div>
+
+        <div class="row g-4">
+            <!-- Player 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="player-card">
+                    <div class="player-img-container">
+                        <img src="/images/players/sachin.jpg" alt="Sachin Tendulkar" class="img-fluid player-img">
+                        <div class="player-overlay"></div>
+                    </div>
+                    <div class="player-info">
+                        <h3 class="player-name">Sachin Tendulkar</h3>
+                        <p class="player-role">The Master Blaster</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="player-card">
+                    <div class="player-img-container">
+                        <img src="/images/players/viv.jpg" alt="Viv Richards" class="img-fluid player-img">
+                        <div class="player-overlay"></div>
+                    </div>
+                    <div class="player-info">
+                        <h3 class="player-name">Viv Richards</h3>
+                        <p class="player-role">The King</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="player-card">
+                    <div class="player-img-container">
+                        <img src="/images/players/shane.jpg" alt="Shane Warne" class="img-fluid player-img">
+                        <div class="player-overlay"></div>
+                    </div>
+                    <div class="player-info">
+                        <h3 class="player-name">Shane Warne</h3>
+                        <p class="player-role">The Spin King</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="player-card">
+                    <div class="player-img-container">
+                        <img src="/images/players/dalest.jpg" alt="Dale Steyn" class="img-fluid player-img">
+                        <div class="player-overlay"></div>
+                    </div>
+                    <div class="player-info">
+                        <h3 class="player-name">Dale Steyn</h3>
+                        <p class="player-role">The King of Swing</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .player-card {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 3px solid #d32f2f;
+        }
+
+            .player-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 15px 30px rgba(211, 47, 47, 0.3);
+            }
+
+        .player-img-container {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .player-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .player-card:hover .player-img {
+            transform: scale(1.05);
+        }
+
+        .player-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.2));
+        }
+
+        .player-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+        }
+
+        .player-name {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            color: #fff;
+        }
+
+        .player-role {
+            font-style: italic;
+            color: #d32f2f;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+    </style>
+
+    <div class="hero-section">
+        <h1>Welcome to CRICXI Fantasy Cricket</h1>
+        <p class="lead">The ultimate fantasy cricket experience</p>
+        <a class="btn btn-primary btn-lg mr-3" asp-controller="Match" asp-action="Upcoming">View Upcoming Matches</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card match-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Upcoming Matches</h5>
+                </div>
+                <div class="card-body">
+                    <div id="upcomingMatches">
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card news-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Latest Cricket News</h5>
+                </div>
+                <div class="card-body">
+                    <div id="cricketNews">
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load wallet balance
+            $.get("/Home/GetWalletBalance", function(data) {
+                $("#walletBalance").text(data);
+            });
+
+            // Load upcoming matches
+            $.get("/Home/GetUpcomingMatches", function(data) {
+                if (data && data.length > 0) {
+                    let matchesHtml = '';
+                    data.forEach(match => {
+                        matchesHtml += `
+                            <div class="mb-3">
+                                <h6>${match.team1} vs ${match.team2}</h6>
+                                <p class="mb-1">${match.date} at ${match.venue}</p>
+                                <small class="text-muted">${match.tournament}</small>
+                            </div>
+                            <hr class="my-2">
+                        `;
+                    });
+                    $("#upcomingMatches").html(matchesHtml);
+                } else {
+                    $("#upcomingMatches").html('<p class="text-center">No upcoming matches found.</p>');
+                }
+            }).fail(function() {
+                $("#upcomingMatches").html('<p class="text-center">Failed to load matches. Please try again later.</p>');
+            });
+
+            // Load cricket news
+            $.get("/Home/GetNews", function(data) {
+                if (data && data.length > 0) {
+                    let newsHtml = '';
+                    data.slice(0, 5).forEach(newsItem => {
+                        newsHtml += `
+                            <div class="mb-3">
+                                <h6 class="news-title">${newsItem.title}</h6>
+                                <p class="mb-1">${newsItem.summary}</p>
+                                <small>${newsItem.date}</small>
+                            </div>
+                            <hr class="my-2">
+                        `;
+                    });
+                    $("#cricketNews").html(newsHtml);
+                } else {
+                    $("#cricketNews").html('<p class="text-center">No news available at the moment.</p>');
+                }
+            }).fail(function() {
+                $("#cricketNews").html('<p class="text-center">Failed to load news. Please try again later.</p>');
+            });
+        });
+    </script>
+}

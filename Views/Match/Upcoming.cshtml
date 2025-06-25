@@ -1,33 +1,92 @@
 ﻿@model List<CRICXI.Models.Match>
 @{
-    ViewBag.Title = "Upcoming Matches";
+    ViewData["Title"] = "Upcoming Matches";
+    Layout = "_Layout"; // or set null if you want fullscreen
 }
 
-<h2>Upcoming Matches</h2>
+<style>
+    body {
+        background: url('/images/stadium.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
 
-@if (Model.Count == 0)
-{
-    <p>No upcoming matches available right now.</p>
-}
-else
-{
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Match Description</th>
-                <th>Teams</th>
-                <th>Start Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var match in Model)
-            {
+    .overlay {
+        background-color: rgba(0, 0, 0, 0.75);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-top: 2rem;
+    }
+
+    h2 {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 2rem;
+        color: #ffd700;
+        text-shadow: 2px 2px #000;
+    }
+
+    .match-table {
+        background-color: rgba(255, 255, 255, 0.95);
+        color: #000;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+        .match-table th {
+            background-color: #d32f2f;
+            color: white;
+            text-align: center;
+        }
+
+        .match-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+    .no-matches {
+        text-align: center;
+        font-size: 1.3rem;
+        color: #f8d7da;
+        background-color: rgba(220, 53, 69, 0.2);
+        border: 1px solid #dc3545;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="container overlay">
+    <h2>🏏 Upcoming Cricket Matches</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="no-matches">
+            No upcoming matches available right now. Please check back later!
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover match-table">
+            <thead>
                 <tr>
-                    <td>@match.MatchDesc</td>
-                    <td>@match.TeamA vs @match.TeamB</td>
-                    <td>@match.StartDate</td>
+                    <th>Description</th>
+                    <th>Teams</th>
+                    <th>Date (Toronto)</th>
+                    <th>Time (Toronto)</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-}
+            </thead>
+            <tbody>
+                @foreach (var match in Model)
+                {
+                    <tr>
+                        <td>@match.MatchDesc</td>
+                        <td><strong>@match.TeamA</strong> vs <strong>@match.TeamB</strong></td>
+                        <td>@match.TorontoDate</td>
+                        <td>@match.TorontoTime</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

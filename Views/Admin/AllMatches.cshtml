@@ -1,32 +1,303 @@
 ﻿@model List<CRICXI.Models.Match>
 @{
-    ViewBag.Title = "All Matches";
+    ViewData["Title"] = "All Matches";
+    Layout = "_Layout";
 }
 
-<h2>All Matches</h2>
+<style>
+    :root {
+        --cricket-green: #1a5d1a;
+        --team-blue: #0d6efd;
+        --team-red: #dc3545;
+        --live-red: #dc3545;
+        --upcoming-blue: #17a2b8;
+        --completed-gray: #6c757d;
+    }
 
-<a asp-action="SyncMatches" class="btn btn-primary mb-3">Sync Matches From Cricbuzz API</a>
+    .matches-container {
+        background: rgba(248, 249, 250, 0.95);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Match</th>
-            <th>Teams</th>
-            <th>Start Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var match in Model)
-        {
-            <tr>
-                <td>@match.MatchDesc</td>
-                <td>@match.TeamA vs @match.TeamB</td>
-                <td>@match.StartDate</td>
-                <td>
-                    <a asp-action="CreateContest" asp-route-matchId="@match.Id" class="btn btn-sm btn-success">Create Contest</a>
-                </td>
-            </tr>
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .matches-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--cricket-green);
+    }
+
+        .matches-header h2 {
+            color: var(--cricket-green);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
         }
-    </tbody>
-</table>
+
+    .back-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .back-btn:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+            transform: translateX(-3px);
+        }
+
+    .sync-btn {
+        background: yellow;
+        border: none;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+
+        .sync-btn:hover {
+            background: darkcyan;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .matches-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+        .matches-table thead {
+            background: linear-gradient(135deg, var(--cricket-green), #2a8a2a);
+            color: white;
+        }
+
+        .matches-table th {
+            padding: 1rem;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .matches-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+        }
+
+        .matches-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            .matches-table tbody tr:hover {
+                background-color: rgba(26, 93, 26, 0.03);
+            }
+
+    .team-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .team-a {
+        color: var(--team-blue);
+        font-weight: 600;
+    }
+
+    .team-b {
+        color: var(--team-red);
+        font-weight: 600;
+    }
+
+    .vs {
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+
+    .match-status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-live {
+        background: var(--live-red);
+        color: white;
+        animation: pulse 1.5s infinite;
+    }
+
+    .status-upcoming {
+        background: var(--upcoming-blue);
+        color: white;
+    }
+
+    .status-completed {
+        background: var(--completed-gray);
+        color: white;
+    }
+
+    .action-btn {
+        min-width: 120px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .no-matches {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 10px;
+    }
+
+    @@media (max-width: 768px) {
+        .matches-container {
+            padding: 1rem;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .matches-header {
+            width: 100%;
+        }
+
+        .team-display {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+    }
+</style>
+
+<div class="matches-container">
+    <div class="matches-header">
+        <div class="header-actions">
+            <a asp-area="" asp-controller="Admin" asp-action="Dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h2>All Matches</h2>
+            <a asp-action="SyncMatches" class="btn sync-btn">
+                <i class="fas fa-sync-alt"></i> Sync From Cricbuzz API
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="no-matches">
+            <i class="fas fa-baseball-ball fa-3x mb-3" style="color: var(--cricket-green);"></i>
+            <h4>No Matches Available</h4>
+            <p class="text-muted">Click the sync button to fetch latest matches from Cricbuzz</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="matches-table">
+                <thead>
+                    <tr>
+                        <th>Match</th>
+                        <th>Teams</th>
+                        <th>Start Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var match in Model)
+                    {
+                        var statusClass = "";
+                        var statusText = "";
+                        if (match.StartDate > DateTime.Now)
+                        {
+                            statusClass = "status-upcoming";
+                            statusText = "Upcoming";
+                        }
+                        else if (match.StartDate.AddHours(8) > DateTime.Now)
+                        {
+                            statusClass = "status-live";
+                            statusText = "Live";
+                        }
+                        else
+                        {
+                            statusClass = "status-completed";
+                            statusText = "Completed";
+                        }
+
+                        <tr>
+                            <td>@match.MatchDesc</td>
+                            <td>
+                                <div class="team-display">
+                                    <span class="team-a">@match.TeamA</span>
+                                    <span class="vs">vs</span>
+                                    <span class="team-b">@match.TeamB</span>
+                                </div>
+                            </td>
+                            <td>@match.StartDate.ToString("dd MMM yyyy hh:mm tt")</td>
+                            <td>
+                                <span class="match-status @statusClass">@statusText</span>
+                            </td>
+                            <td>
+                                <a asp-action="CreateContest" asp-route-matchId="@match.Id"
+                                   class="btn btn-success btn-sm action-btn">
+                                    <i class="fas fa-trophy"></i> Create Contest
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Highlight live matches
+            $('.status-live').closest('tr').css('background-color', 'rgba(220, 53, 69, 0.03)');
+        });
+    </script>
+}

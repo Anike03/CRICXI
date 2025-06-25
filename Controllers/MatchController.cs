@@ -27,9 +27,17 @@ namespace CRICXI.Controllers
         // ✅ This now simply loads upcoming matches from your synced database
         public async Task<IActionResult> Upcoming()
         {
-            var matchList = await _matchService.GetAll();
-            return View(matchList);
+            var allMatches = await _matchService.GetAll();
+
+            // Only future matches based on UTC
+            var upcoming = allMatches
+                .Where(m => m.StartDate > DateTime.UtcNow)
+                .OrderBy(m => m.StartDate)
+                .ToList();
+
+            return View(upcoming);
         }
+
 
         // ✅ LiveScore (optional)
         public async Task<IActionResult> LiveScore(string id)

@@ -36,7 +36,6 @@ namespace CRICXI.Controllers
             return HttpContext.Session.GetString("Role") == "Admin";
         }
 
-        // ✅ Admin Login
         [HttpGet]
         public IActionResult Login() => View();
 
@@ -49,6 +48,7 @@ namespace CRICXI.Controllers
                 HttpContext.Session.SetString("Role", "Admin");
                 return RedirectToAction("Dashboard");
             }
+
             ViewBag.Error = "Invalid Admin Credentials!";
             return View();
         }
@@ -84,11 +84,13 @@ namespace CRICXI.Controllers
                                     {
                                         if (m.TryGetProperty("matchInfo", out var matchInfo))
                                         {
-                                            var team1 = matchInfo.GetProperty("team1").GetProperty("teamName").GetString() ?? string.Empty;
-                                            var team2 = matchInfo.GetProperty("team2").GetProperty("teamName").GetString() ?? string.Empty;
-                                            var matchDesc = matchInfo.GetProperty("matchDesc").GetString() ?? string.Empty;
-                                            var startDate = matchInfo.GetProperty("startDate").GetString() ?? string.Empty;
+                                            var team1 = matchInfo.GetProperty("team1").GetProperty("teamName").GetString() ?? "";
+                                            var team2 = matchInfo.GetProperty("team2").GetProperty("teamName").GetString() ?? "";
+                                            var matchDesc = matchInfo.GetProperty("matchDesc").GetString() ?? "";
                                             var cricbuzzMatchId = matchInfo.GetProperty("matchId").ToString();
+
+                                            var startMillis = matchInfo.GetProperty("startDate").GetString();
+                                            var startDate = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(startMillis)).DateTime;
 
                                             var match = new Match
                                             {
@@ -109,6 +111,7 @@ namespace CRICXI.Controllers
                     }
                 }
             }
+
             return RedirectToAction("AllMatches");
         }
 
@@ -142,9 +145,19 @@ namespace CRICXI.Controllers
         public async Task<IActionResult> CreateContest(Contest contest)
         {
             if (!IsAdmin()) return Unauthorized();
+
+            var match = await _matchService.GetById(contest.MatchId);
+            if (match != null)
+            {
+                contest.TeamA = match.TeamA;
+                contest.TeamB = match.TeamB;
+                contest.StartDate = match.StartDate;
+            }
+
             await _contestService.Create(contest);
             return RedirectToAction("AllContests");
         }
+
 
         // ✅ USERS MANAGEMENT
         [HttpGet]
@@ -171,7 +184,6 @@ namespace CRICXI.Controllers
             return RedirectToAction("AllUsers");
         }
 
-        // ✅ NEW: Ban User
         [HttpPost]
         public async Task<IActionResult> BanUser(string userId)
         {
@@ -180,7 +192,6 @@ namespace CRICXI.Controllers
             return RedirectToAction("AllUsers");
         }
 
-        // ✅ NEW: Delete User
         [HttpPost]
         public async Task<IActionResult> DeleteUser(string userId)
         {
@@ -212,7 +223,7 @@ namespace CRICXI.Controllers
                 var matchInfo = doc.RootElement.GetProperty("matchInfo");
 
                 var team1 = matchInfo.GetProperty("team1");
-                var team1Name = team1.GetProperty("teamName").GetString() ?? string.Empty;
+                var team1Name = team1.GetProperty("teamName").GetString() ?? "";
                 var team1Players = team1.GetProperty("players");
 
                 foreach (var p in team1Players.EnumerateArray())
@@ -221,14 +232,14 @@ namespace CRICXI.Controllers
                     {
                         CricbuzzMatchId = matchId,
                         CricbuzzPlayerId = p.GetProperty("id").ToString(),
-                        Name = p.GetProperty("name").GetString() ?? string.Empty,
+                        Name = p.GetProperty("name").GetString() ?? "",
                         Team = team1Name,
                         Role = ""
                     });
                 }
 
                 var team2 = matchInfo.GetProperty("team2");
-                var team2Name = team2.GetProperty("teamName").GetString() ?? string.Empty;
+                var team2Name = team2.GetProperty("teamName").GetString() ?? "";
                 var team2Players = team2.GetProperty("players");
 
                 foreach (var p in team2Players.EnumerateArray())
@@ -237,7 +248,7 @@ namespace CRICXI.Controllers
                     {
                         CricbuzzMatchId = matchId,
                         CricbuzzPlayerId = p.GetProperty("id").ToString(),
-                        Name = p.GetProperty("name").GetString() ?? string.Empty,
+                        Name = p.GetProperty("name").GetString() ?? "",
                         Team = team2Name,
                         Role = ""
                     });
@@ -270,5 +281,40 @@ namespace CRICXI.Controllers
             TempData["Success"] = "Player roles updated successfully!";
             return RedirectToAction("ManagePlayers", new { matchId });
         }
+        [HttpGet]
+        public async Task<IActionResult> EditContest(string id)
+        {
+            if (!IsAdmin()) return Unauthorized();
+            var contest = await _contestService.GetById(id);
+            if (contest == null) return NotFound();
+            return View(contest);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditContest(Contest updated)
+        {
+            if (!IsAdmin()) return Unauthorized();
+            await _contestService.Update(updated.Id, updated);
+            return RedirectToAction("AllContests");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
+        {
+            if (!IsAdmin()) return Unauthorized();
+            var contest = await _contestService.GetById(id);
+            if (contest == null) return NotFound();
+            return View(contest);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteContest(string id)
+        {
+            if (!IsAdmin()) return Unauthorized();
+            await _contestService.Delete(id);
+            return RedirectToAction("AllContests");
+        }
+
+
     }
 }

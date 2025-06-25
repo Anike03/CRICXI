@@ -12,6 +12,9 @@ namespace CRICXI.Models
         public string MatchId { get; set; } // This comes from the external API match
 
         public string Name { get; set; }
+        public string TeamA { get; set; }
+        public string TeamB { get; set; }
+        public DateTime? StartDate { get; set; }
 
         public int EntryFee { get; set; } // Amount user pays to enter
 

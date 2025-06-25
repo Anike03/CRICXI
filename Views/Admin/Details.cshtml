@@ -1,0 +1,38 @@
+﻿@model CRICXI.Models.Contest
+@{
+    ViewData["Title"] = "Contest Details";
+}
+
+<div class="container py-5">
+    <h2 class="text-center text-info mb-4">Contest Details</h2>
+
+    <div class="card border-info shadow">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">@Model.Name</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Match</dt>
+                <dd class="col-sm-8">@Model.TeamA vs @Model.TeamB</dd>
+
+                <dt class="col-sm-4">Start Time</dt>
+                <dd class="col-sm-8">@Model.StartDate?.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</dd>
+
+                <dt class="col-sm-4">Entry Fee</dt>
+                <dd class="col-sm-8">₹@Model.EntryFee</dd>
+
+                <dt class="col-sm-4">Max Participants</dt>
+                <dd class="col-sm-8">@Model.MaxParticipants</dd>
+
+                <dt class="col-sm-4">Total Prize</dt>
+                <dd class="col-sm-8">₹@Model.TotalPrize</dd>
+
+                <dt class="col-sm-4">Created At</dt>
+                <dd class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</dd>
+            </dl>
+        </div>
+        <div class="card-footer text-end">
+            <a asp-action="AllContests" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>

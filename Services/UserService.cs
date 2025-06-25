@@ -30,12 +30,7 @@ namespace CRICXI.Services
             return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
 
-        public async Task<User?> GetByVerificationToken(string token)
-        {
-            if (string.IsNullOrWhiteSpace(token)) return null;
-            Console.WriteLine($"🔍 Searching for token: {token}");
-            return await _users.Find(u => u.EmailVerificationToken == token).FirstOrDefaultAsync();
-        }
+       
 
         // ✅ REGISTER (both for normal + demo wallet)
         public async Task<bool> Register(User user, string password)

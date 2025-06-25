@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRICXI.Controllers
 {
-    public class LeaderboardController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class LeaderboardController : ControllerBase
     {
         private readonly LeaderboardService _leaderboardService;
         private readonly ContestService _contestService;
@@ -20,15 +22,15 @@ namespace CRICXI.Controllers
             _matchService = matchService;
         }
 
-        public async Task<IActionResult> Contest(string contestId)
+        // ✅ This API will calculate and return leaderboard for contest
+        [HttpGet("contest/{contestId}")]
+        public async Task<IActionResult> GetLeaderboard(string contestId)
         {
             // Fetch contest info
             var contest = await _contestService.GetById(contestId);
             var match = await _matchService.GetById(contest.MatchId);
-            ViewBag.Match = match;
-            ViewBag.Contest = contest;
 
-            // TODO: Replace this with real API fetched data when we hook live Cricbuzz data:
+            // ✅ This will be replaced with real fetched stats later when connected to live API:
             var matchStats = new Dictionary<string, PlayerPerformance>
             {
                 { "1", new PlayerPerformance { Runs = 50, Fours = 5, Sixes = 2, BallsFaced = 30, Wickets = 1, OversBowled = 2, RunsConceded = 20, Catches = 1 } },
@@ -36,12 +38,11 @@ namespace CRICXI.Controllers
                 { "3", new PlayerPerformance { Runs = 0, Fours = 0, Sixes = 0, BallsFaced = 1, Wickets = 3, OversBowled = 3, RunsConceded = 18, Catches = 1 } }
             };
 
-            // Generate full leaderboard
             var leaderboard = await _leaderboardService.GenerateLeaderboard(
                 contest.MatchId, matchStats, contest.TotalPrize
             );
 
-            return View(leaderboard);
+            return Ok(leaderboard);
         }
     }
 }

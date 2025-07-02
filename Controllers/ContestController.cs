@@ -26,15 +26,14 @@ namespace CRICXI.Controllers
             _fantasyTeamService = fantasyTeamService;
         }
 
-        // ---------------------- ✅ API FOR FRONTEND ----------------------
-
+        // ✅ API: All contests (used by React frontend)
         [HttpGet]
-        [Route("api/contests/by-match/{matchId}")]
-        public async Task<IActionResult> GetContestsByMatch(string matchId)
+        [Route("api/contests")]
+        public async Task<IActionResult> GetAllContests()
         {
-            var contests = await _contestService.GetUpcomingByMatchId(matchId);
-
+            var contests = await _contestService.GetAll();
             var enriched = new List<object>();
+
             foreach (var c in contests)
             {
                 var joinedCount = await _entryService.GetJoinedCount(c.Id);
@@ -56,8 +55,36 @@ namespace CRICXI.Controllers
             return Ok(enriched);
         }
 
-        // ---------------------- ✅ ADMIN VIEWS ----------------------
+        // ✅ API: Contests by match
+        [HttpGet]
+        [Route("api/contests/by-match/{matchId}")]
+        public async Task<IActionResult> GetContestsByMatch(string matchId)
+        {
+            var contests = await _contestService.GetUpcomingByMatchId(matchId);
+            var enriched = new List<object>();
 
+            foreach (var c in contests)
+            {
+                var joinedCount = await _entryService.GetJoinedCount(c.Id);
+                enriched.Add(new
+                {
+                    id = c.Id,
+                    name = c.Name,
+                    matchId = c.MatchId,
+                    teamA = c.TeamA,
+                    teamB = c.TeamB,
+                    entryFee = c.EntryFee,
+                    totalPrize = c.TotalPrize,
+                    maxParticipants = c.MaxParticipants,
+                    startDate = c.StartDate,
+                    joined = joinedCount
+                });
+            }
+
+            return Ok(enriched);
+        }
+
+        // ✅ Admin Razor view
         public async Task<IActionResult> Index()
         {
             var contests = await _contestService.GetAll();
@@ -76,10 +103,8 @@ namespace CRICXI.Controllers
         public async Task<IActionResult> Create(string matchId)
         {
             if (!IsAdmin()) return Unauthorized();
-
             var match = await _matchService.GetById(matchId);
             if (match == null) return NotFound();
-
             ViewBag.Match = match;
             return View(new Contest { MatchId = matchId });
         }
@@ -88,7 +113,6 @@ namespace CRICXI.Controllers
         public async Task<IActionResult> Create(Contest contest)
         {
             if (!IsAdmin()) return Unauthorized();
-
             var match = await _matchService.GetById(contest.MatchId);
             if (match != null)
             {
@@ -106,10 +130,8 @@ namespace CRICXI.Controllers
         {
             var contest = await _contestService.GetById(id);
             if (contest == null) return NotFound();
-
             var entries = await _entryService.GetByContest(id);
             ViewBag.Entries = entries;
-
             return View(contest);
         }
 
@@ -136,8 +158,7 @@ namespace CRICXI.Controllers
             return RedirectToAction("Index");
         }
 
-        // ---------------------- ✅ CLIENT JOIN CONTEST ----------------------
-
+        // ✅ Join contest view (renders form)
         [HttpGet]
         public async Task<IActionResult> Join(string contestId)
         {
@@ -159,6 +180,7 @@ namespace CRICXI.Controllers
             return View();
         }
 
+        // ✅ Submit join contest
         [HttpPost]
         public async Task<IActionResult> Join(string contestId, string teamId)
         {
@@ -203,5 +225,6 @@ namespace CRICXI.Controllers
         {
             return HttpContext.Session.GetString("Role") == "Admin";
         }
+
     }
 }

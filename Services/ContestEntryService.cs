@@ -20,5 +20,11 @@ namespace CRICXI.Services
 
         public async Task Add(ContestEntry entry) =>
             await _entries.InsertOneAsync(entry);
+
+        public async Task<int> GetJoinedCount(string contestId)
+        {
+            return (int)await _entries.CountDocumentsAsync(e => e.ContestId == contestId);
+        }
+
     }
 }

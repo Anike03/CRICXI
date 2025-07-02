@@ -26,16 +26,44 @@ namespace CRICXI.Controllers
             _fantasyTeamService = fantasyTeamService;
         }
 
-        //---------------------- CLIENT SIDE ----------------------
+        //---------------------- ✅ API FOR FRONTEND ----------------------
 
-        // ✅ Show all contests (client side)
+        [HttpGet]
+        [Route("api/contests/by-match/{matchId}")]
+        public async Task<IActionResult> GetContestsByMatch(string matchId)
+        {
+            var contests = await _contestService.GetUpcomingByMatchId(matchId);
+
+            var enriched = new List<object>();
+            foreach (var c in contests)
+            {
+                var joinedCount = await _entryService.GetJoinedCount(c.Id);
+                enriched.Add(new
+                {
+                    id = c.Id,
+                    name = c.Name,
+                    matchId = c.MatchId,
+                    teamA = c.TeamA,
+                    teamB = c.TeamB,
+                    entryFee = c.EntryFee,
+                    totalPrize = c.TotalPrize,
+                    maxParticipants = c.MaxParticipants,
+                    startDate = c.StartDate,
+                    joined = joinedCount
+                });
+            }
+
+            return Ok(enriched);
+        }
+
+        //---------------------- ✅ MVC VIEWS FOR ADMIN ----------------------
+
         public async Task<IActionResult> Index()
         {
             var contests = await _contestService.GetAll();
             return View(contests);
         }
 
-        // ✅ Client joins contest (GET)
         [HttpGet]
         public async Task<IActionResult> Join(string contestId)
         {
@@ -57,7 +85,6 @@ namespace CRICXI.Controllers
             return View();
         }
 
-        // ✅ Client joins contest (POST)
         [HttpPost]
         public async Task<IActionResult> Join(string contestId, string teamId)
         {
@@ -77,14 +104,12 @@ namespace CRICXI.Controllers
                 return RedirectToAction("Index");
             }
 
-            // ✅ Wallet balance check
             if (user.WalletBalance < contest.EntryFee)
             {
-                TempData["Error"] = $"Insufficient wallet balance. You need ${contest.EntryFee - user.WalletBalance} more.";
+                TempData["Error"] = $"Insufficient wallet balance. You need ₹{contest.EntryFee - user.WalletBalance} more.";
                 return RedirectToAction("Index");
             }
 
-            // ✅ Deduct entry fee
             await _userService.UpdateWallet(user.Id, contest.EntryFee, addFunds: false);
 
             var entry = new ContestEntry
@@ -100,9 +125,6 @@ namespace CRICXI.Controllers
             return RedirectToAction("Index");
         }
 
-        //---------------------- ADMIN SIDE ----------------------
-
-        // ✅ Show all contests (admin)
         [HttpGet]
         public async Task<IActionResult> AdminContests()
         {
@@ -171,9 +193,6 @@ namespace CRICXI.Controllers
             await _contestService.Delete(id);
             return RedirectToAction("Index");
         }
-
-
-        //---------------------- SECURITY ----------------------
 
         private bool IsAdmin()
         {

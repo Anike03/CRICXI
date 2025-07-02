@@ -26,5 +26,15 @@ namespace CRICXI.Services
 
         public async Task Delete(string id) =>
             await _contests.DeleteOneAsync(c => c.Id == id);
+        public async Task<List<Contest>> GetUpcomingByMatchId(string matchId)
+        {
+            return await _contests.Find(c =>
+                c.MatchId == matchId &&
+                c.StartDate.HasValue &&
+                c.StartDate.Value > DateTime.UtcNow
+            ).ToListAsync();
+        }
+
     }
+
 }

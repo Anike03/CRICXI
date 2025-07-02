@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using MongoDB.Bson.Serialization.Conventions;
 
 namespace CRICXI.Services
 {
@@ -14,6 +15,13 @@ namespace CRICXI.Services
 
         public UserService(IMongoDatabase database)
         {
+            // Configure MongoDB to ignore extra elements during deserialization
+            var pack = new ConventionPack
+            {
+                new IgnoreExtraElementsConvention(true)
+            };
+            ConventionRegistry.Register("IgnoreExtraElements", pack, t => true);
+
             _users = database.GetCollection<User>("Users");
             _passwordHasher = new PasswordHasher<User>();
         }
@@ -30,9 +38,16 @@ namespace CRICXI.Services
             return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
 
-       
+        public async Task<User?> GetById(string id)
+        {
+            return await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
+        }
 
-        // ✅ REGISTER (both for normal + demo wallet)
+        public async Task<List<User>> GetAllUsers()
+        {
+            return await _users.Find(_ => true).ToListAsync();
+        }
+
         public async Task<bool> Register(User user, string password)
         {
             var existing = await _users.Find(u => u.Username == user.Username || u.Email == user.Email).FirstOrDefaultAsync();
@@ -40,12 +55,11 @@ namespace CRICXI.Services
                 return false;
 
             user.PasswordHash = _passwordHasher.HashPassword(user, password);
-            user.WalletBalance = 1000m;  // ✅ Initial $1000 demo credit
+            user.WalletBalance = 1000m;  // Initial ₹1000 demo credit
             await _users.InsertOneAsync(user);
             return true;
         }
 
-        // ✅ For OAuth registration (without password)
         public async Task RegisterWithoutPassword(User user)
         {
             user.WalletBalance = 1000m;
@@ -69,11 +83,6 @@ namespace CRICXI.Services
         public async Task Update(User user)
         {
             await _users.ReplaceOneAsync(u => u.Id == user.Id, user);
-        }
-
-        public async Task<List<User>> GetAllUsers()
-        {
-            return await _users.Find(_ => true).ToListAsync();
         }
 
         public async Task<bool> UpdateWallet(string userId, decimal amount, bool addFunds = true)
@@ -109,11 +118,6 @@ namespace CRICXI.Services
                 user.WalletBalance += amount;
                 await _users.ReplaceOneAsync(u => u.Id == user.Id, user);
             }
-        }
-
-        public async Task<User?> GetById(string id)
-        {
-            return await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task DeleteUser(string userId)

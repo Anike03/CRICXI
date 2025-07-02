@@ -14,5 +14,8 @@ namespace CRICXI.Models
         public string Role { get; set; } = "User";
         public decimal WalletBalance { get; set; } = 0;
         public DateTime? IsBannedUntil { get; set; }
+
+        // Add this if you want to use the IsEmailConfirmed field
+        public bool IsEmailConfirmed { get; set; } = false;
     }
 }

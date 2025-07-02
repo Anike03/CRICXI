@@ -1,54 +1,200 @@
 ﻿@model List<CRICXI.Models.User>
-
 @{
-    ViewBag.Title = "All Users";
+    ViewData["Title"] = "All Users";
+    Layout = "_Layout";
 }
 
-<h2>All Users</h2>
+<style>
+    :root {
+        --cricket-green: #1a5d1a;
+        --team-blue: #0d6efd;
+        --team-red: #dc3545;
+        --yellow-gold: #ffc107;
+        --dark-gray: #343a40;
+    }
 
-<table class="table table-bordered table-striped">
-    <thead class="thead-dark">
-        <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Wallet</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
-            <tr>
-                <td>@user.Username</td>
-                <td>@user.Email</td>
-                <td>₹@user.WalletBalance</td>
-                <td>
-                    @if (user.IsBannedUntil.HasValue && user.IsBannedUntil > DateTime.UtcNow)
-                    {
-                        <span class="text-danger">Banned until @user.IsBannedUntil.Value.ToLocalTime().ToString("dd MMM yyyy")</span>
-                    }
-                    else
-                    {
-                        <span class="text-success">Active</span>
-                    }
-                </td>
-                <td>
-                    <!-- Recharge -->
-                    <a class="btn btn-sm btn-primary" asp-action="RechargeUser" asp-route-userId="@user.Id">Recharge</a>
+    .users-container {
+        background: rgba(255, 255, 255, 0.98);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
 
-                    <!-- Ban User -->
-                    <form asp-action="BanUser" method="post" asp-route-userId="@user.Id" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-warning">Ban 30 Days</button>
-                    </form>
+    .users-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid var(--cricket-green);
+        padding-bottom: 1rem;
+    }
 
-                    <!-- Delete User -->
-                    <form asp-action="DeleteUser" method="post" asp-route-userId="@user.Id" style="display:inline;"
-                          onsubmit="return confirm('Are you sure you want to permanently delete this user?');">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
+        .users-header h2 {
+            color: var(--cricket-green);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 auto;
+            text-align: center;
         }
-    </tbody>
-</table>
+
+
+    .back-btn {
+        background: var(--dark-gray);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: 0.3s ease;
+    }
+
+        .back-btn:hover {
+            background: #23272b;
+            color: white;
+            transform: translateX(-3px);
+        }
+
+    .users-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+        .users-table thead {
+            background: linear-gradient(135deg, var(--cricket-green), #2a8a2a);
+            color: white;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .users-table tbody tr:hover {
+            background: rgba(26, 93, 26, 0.03);
+        }
+
+    .status-banned {
+        color: var(--team-red);
+        font-weight: 600;
+    }
+
+    .status-active {
+        color: var(--cricket-green);
+        font-weight: 600;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: 4px;
+        margin: 0 2px;
+    }
+
+    .btn-primary {
+        background: var(--team-blue);
+        border: none;
+        color: white;
+    }
+
+    .btn-warning {
+        background: var(--yellow-gold);
+        border: none;
+        color: black;
+    }
+
+    .btn-danger {
+        background: var(--team-red);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0b5ed7;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    @@media (max-width: 768px) {
+        .users-header
+
+    {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    }
+</style>
+
+<div class="container">
+    <div class="users-container">
+        <div class="users-header">
+            <a asp-controller="Admin" asp-action="Dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h2>All Users</h2>
+        </div>
+
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Wallet</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        var isBanned = user.IsBannedUntil.HasValue && user.IsBannedUntil > DateTime.UtcNow;
+                        <tr>
+                            <td>@user.Username</td>
+                            <td>@user.Email</td>
+                            <td>₹@user.WalletBalance</td>
+                            <td>
+                                <span class="@(isBanned ? "status-banned" : "status-active")">
+                                    @(isBanned ? $"Banned until {user.IsBannedUntil.Value.ToLocalTime():dd MMM yyyy}" : "Active")
+                                </span>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" asp-action="RechargeUser" asp-route-userId="@user.Id">Recharge</a>
+
+                                <form asp-action="BanUser" asp-route-userId="@user.Id" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-warning">Ban 30 Days</button>
+                                </form>
+
+                                <form asp-action="DeleteUser" asp-route-userId="@user.Id" method="post" style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to permanently delete this user?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

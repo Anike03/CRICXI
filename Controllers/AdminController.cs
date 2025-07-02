@@ -1,5 +1,6 @@
 ﻿using CRICXI.Models;
 using CRICXI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -314,6 +315,32 @@ namespace CRICXI.Controllers
             await _contestService.Delete(id);
             return RedirectToAction("AllContests");
         }
+
+        [HttpPost("/api/users/sync")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SyncFirebaseUser([FromBody] FirebaseUserDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email required.");
+
+            var existing = await _userService.GetByEmail(dto.Email);
+            if (existing != null)
+                return Ok(existing);
+
+            var newUser = new User
+            {
+                Username = dto.Username ?? dto.Email.Split('@')[0],
+                Email = dto.Email,
+                WalletBalance = 1000,
+                IsEmailConfirmed = true, // assumed verified via Firebase
+                Role = "User",
+                IsBannedUntil = null
+            };
+
+            await _userService.RegisterWithoutPassword(newUser);
+
+            return Ok(newUser);
+        }
+
 
 
     }

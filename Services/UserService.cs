@@ -133,5 +133,14 @@ namespace CRICXI.Services
             user.IsBannedUntil = DateTime.UtcNow.AddDays(days);
             await Update(user);
         }
+
+        public async Task UnbanUser(string userId)
+        {
+            var user = await GetById(userId);
+            if (user == null) return;
+
+            user.IsBannedUntil = null;
+            await Update(user);
+        }
     }
 }

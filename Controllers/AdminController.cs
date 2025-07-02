@@ -340,7 +340,21 @@ namespace CRICXI.Controllers
 
             return Ok(newUser);
         }
+        [HttpPost]
+        public async Task<IActionResult> UnbanUser(string userId)
+        {
+            if (!IsAdmin()) return Unauthorized();
 
+            var user = await _userService.GetById(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            await _userService.UnbanUser(userId);
+
+            return RedirectToAction("AllUsers");
+        }
 
 
     }

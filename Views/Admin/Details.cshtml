@@ -3,36 +3,182 @@
     ViewData["Title"] = "Contest Details";
 }
 
-<div class="container py-5">
-    <h2 class="text-center text-info mb-4">Contest Details</h2>
+@section Styles {
+    <style>
+        body {
+            background: url('/images/cricket-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', sans-serif;
+        }
 
-    <div class="card border-info shadow">
-        <div class="card-header bg-info text-white">
-            <h4 class="mb-0">@Model.Name</h4>
-        </div>
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-4">Match</dt>
-                <dd class="col-sm-8">@Model.TeamA vs @Model.TeamB</dd>
+        .details-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 3rem auto;
+            max-width: 900px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
 
-                <dt class="col-sm-4">Start Time</dt>
-                <dd class="col-sm-8">@Model.StartDate?.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</dd>
+            .details-container h2 {
+                text-align: center;
+                color: #0d6efd;
+                margin-bottom: 2rem;
+                font-weight: 700;
+            }
 
-                <dt class="col-sm-4">Entry Fee</dt>
-                <dd class="col-sm-8">₹@Model.EntryFee</dd>
+            .details-container dt {
+                font-weight: 600;
+            }
 
-                <dt class="col-sm-4">Max Participants</dt>
-                <dd class="col-sm-8">@Model.MaxParticipants</dd>
+        .joined-users-table {
+            margin-top: 2rem;
+        }
 
-                <dt class="col-sm-4">Total Prize</dt>
-                <dd class="col-sm-8">₹@Model.TotalPrize</dd>
+            .joined-users-table table {
+                width: 100%;
+                border-collapse: collapse;
+            }
 
-                <dt class="col-sm-4">Created At</dt>
-                <dd class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</dd>
-            </dl>
-        </div>
-        <div class="card-footer text-end">
-            <a asp-action="AllContests" class="btn btn-secondary">Back to List</a>
+            .joined-users-table th, .joined-users-table td {
+                border: 1px solid #dee2e6;
+                padding: 12px;
+                text-align: center;
+            }
+
+            .joined-users-table th {
+                background-color: #198754;
+                color: white;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .joined-users-table tbody tr:hover {
+                background-color: #f1f1f1;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+            .btn-danger:hover {
+                background-color: #b02a37;
+            }
+
+        .back-btn {
+            margin-top: 1.5rem;
+            text-align: right;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .badge-joined {
+            background-color: #0d6efd;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+    </style>
+}
+
+<div class="details-container">
+    <h2>🏏 Contest Details</h2>
+
+    <dl class="row">
+        <dt class="col-sm-4">Match</dt>
+        <dd class="col-sm-8">@Model.TeamA vs @Model.TeamB</dd>
+
+        <dt class="col-sm-4">Start Time</dt>
+        <dd class="col-sm-8">@Model.StartDate?.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</dd>
+
+        <dt class="col-sm-4">Entry Fee</dt>
+        <dd class="col-sm-8">₹@Model.EntryFee</dd>
+
+        <dt class="col-sm-4">Max Participants</dt>
+        <dd class="col-sm-8">@Model.MaxParticipants</dd>
+
+        <dt class="col-sm-4">Total Prize</dt>
+        <dd class="col-sm-8">₹@Model.TotalPrize</dd>
+
+        <dt class="col-sm-4">Created At</dt>
+        <dd class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy hh:mm tt")</dd>
+    </dl>
+
+    <div class="joined-users-table">
+        <h4 class="mb-3">👥 Joined Users <span class="badge-joined" id="user-count">0</span></h4>
+        <div id="user-table-container">
+            <div class="loading-spinner">Loading joined users...</div>
         </div>
     </div>
+
+    <div class="back-btn">
+        <a asp-action="AllContests" class="btn btn-secondary">← Back to Contests</a>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch(`/api/contestentry/by-contest/@Model.Id`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("user-count").innerText = data.length;
+                    const container = document.getElementById("user-table-container");
+
+                    if (data.length === 0) {
+                        container.innerHTML = "<p>No users have joined this contest yet.</p>";
+                        return;
+                    }
+
+                    let tableHTML = `<table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Team ID</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                    data.forEach(u => {
+                        tableHTML += `<tr id="row-${u.entryId}">
+                            <td>${u.username}</td>
+                            <td>${u.email}</td>
+                            <td>${u.teamId}</td>
+                            <td><button class="btn btn-sm btn-danger" onclick="removeUser('${u.entryId}')">Remove</button></td>
+                        </tr>`;
+                    });
+
+                    tableHTML += `</tbody></table>`;
+                    container.innerHTML = tableHTML;
+                })
+                .catch(err => {
+                    console.error("Failed to fetch joined users", err);
+                    document.getElementById("user-table-container").innerHTML = "<p>Error loading users.</p>";
+                });
+        });
+
+        function removeUser(entryId) {
+            if (!confirm("Are you sure you want to remove this user from the contest?")) return;
+
+            fetch(`/api/contestentry/${entryId}`, { method: "DELETE" })
+                .then(res => {
+                    if (res.ok) {
+                        document.getElementById(`row-${entryId}`).remove();
+                        const badge = document.getElementById("user-count");
+                        badge.innerText = parseInt(badge.innerText) - 1;
+                    } else {
+                        alert("Failed to remove user.");
+                    }
+                });
+        }
+    </script>
+}

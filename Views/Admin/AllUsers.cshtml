@@ -122,6 +122,12 @@
         color: white;
     }
 
+    .btn-success {
+        background: #28a745;
+        border: none;
+        color: white;
+    }
+
     .btn-primary:hover {
         background: #0b5ed7;
     }
@@ -134,15 +140,16 @@
         background: #c82333;
     }
 
-    @@media (max-width: 768px) {
-        .users-header
-
-    {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+    .btn-success:hover {
+        background: #218838;
     }
 
+    @@media (max-width: 768px) {
+        .users-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
     }
 </style>
 
@@ -182,9 +189,18 @@
                             <td>
                                 <a class="btn btn-sm btn-primary" asp-action="RechargeUser" asp-route-userId="@user.Id">Recharge</a>
 
-                                <form asp-action="BanUser" asp-route-userId="@user.Id" method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-warning">Ban 30 Days</button>
-                                </form>
+                                @if (isBanned)
+                                {
+                                    <form asp-action="UnbanUser" asp-route-userId="@user.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-success">Unban</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="BanUser" asp-route-userId="@user.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-warning">Ban 30 Days</button>
+                                    </form>
+                                }
 
                                 <form asp-action="DeleteUser" asp-route-userId="@user.Id" method="post" style="display:inline;"
                                       onsubmit="return confirm('Are you sure you want to permanently delete this user?');">

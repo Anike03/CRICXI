@@ -26,7 +26,7 @@ namespace CRICXI.Controllers
             _fantasyTeamService = fantasyTeamService;
         }
 
-        //---------------------- ✅ API FOR FRONTEND ----------------------
+        // ---------------------- ✅ API FOR FRONTEND ----------------------
 
         [HttpGet]
         [Route("api/contests/by-match/{matchId}")]
@@ -56,13 +56,87 @@ namespace CRICXI.Controllers
             return Ok(enriched);
         }
 
-        //---------------------- ✅ MVC VIEWS FOR ADMIN ----------------------
+        // ---------------------- ✅ ADMIN VIEWS ----------------------
 
         public async Task<IActionResult> Index()
         {
             var contests = await _contestService.GetAll();
             return View(contests);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> AdminContests()
+        {
+            if (!IsAdmin()) return Unauthorized();
+            var contests = await _contestService.GetAll();
+            return View(contests);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Create(string matchId)
+        {
+            if (!IsAdmin()) return Unauthorized();
+
+            var match = await _matchService.GetById(matchId);
+            if (match == null) return NotFound();
+
+            ViewBag.Match = match;
+            return View(new Contest { MatchId = matchId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(Contest contest)
+        {
+            if (!IsAdmin()) return Unauthorized();
+
+            var match = await _matchService.GetById(contest.MatchId);
+            if (match != null)
+            {
+                contest.TeamA = match.TeamA;
+                contest.TeamB = match.TeamB;
+                contest.StartDate = match.StartDate;
+            }
+
+            await _contestService.Create(contest);
+            return RedirectToAction("AdminContests");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
+        {
+            var contest = await _contestService.GetById(id);
+            if (contest == null) return NotFound();
+
+            var entries = await _entryService.GetByContest(id);
+            ViewBag.Entries = entries;
+
+            return View(contest);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(string id)
+        {
+            var contest = await _contestService.GetById(id);
+            if (contest == null) return NotFound();
+            return View(contest);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(string id, Contest updated)
+        {
+            if (id != updated.Id) return BadRequest();
+            await _contestService.Update(id, updated);
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string id)
+        {
+            await _contestService.Delete(id);
+            return RedirectToAction("Index");
+        }
+
+        // ---------------------- ✅ CLIENT JOIN CONTEST ----------------------
 
         [HttpGet]
         public async Task<IActionResult> Join(string contestId)
@@ -122,75 +196,6 @@ namespace CRICXI.Controllers
 
             await _entryService.Add(entry);
             TempData["Success"] = "Successfully joined the contest!";
-            return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AdminContests()
-        {
-            if (!IsAdmin()) return Unauthorized();
-
-            var contests = await _contestService.GetAll();
-            return View(contests);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Create(string matchId)
-        {
-            if (!IsAdmin()) return Unauthorized();
-
-            var match = await _matchService.GetById(matchId);
-            if (match == null) return NotFound();
-
-            ViewBag.Match = match;
-            return View(new Contest { MatchId = matchId });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Create(Contest contest)
-        {
-            if (!IsAdmin()) return Unauthorized();
-
-            var match = await _matchService.GetById(contest.MatchId);
-            if (match != null)
-            {
-                contest.TeamA = match.TeamA;
-                contest.TeamB = match.TeamB;
-                contest.StartDate = match.StartDate;
-            }
-
-            await _contestService.Create(contest);
-            return RedirectToAction("AdminContests");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Details(string id)
-        {
-            var contest = await _contestService.GetById(id);
-            if (contest == null) return NotFound();
-            return View(contest);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Edit(string id)
-        {
-            var contest = await _contestService.GetById(id);
-            if (contest == null) return NotFound();
-            return View(contest);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Edit(string id, Contest updated)
-        {
-            if (id != updated.Id) return BadRequest();
-            await _contestService.Update(id, updated);
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Delete(string id)
-        {
-            await _contestService.Delete(id);
             return RedirectToAction("Index");
         }
 

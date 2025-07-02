@@ -23,7 +23,7 @@ builder.Services.AddScoped(serviceProvider =>
 
 // 🔧 Register services
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<EmailService>();
+//builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ContestService>();
 builder.Services.AddScoped<ScoringService>();
 builder.Services.AddScoped<LeaderboardService>();

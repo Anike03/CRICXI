@@ -17,13 +17,17 @@ namespace CRICXI.Controllers
             _userService = userService;
         }
 
+        // ✅ API: Join a contest
         [HttpPost("join")]
         public async Task<IActionResult> JoinContest([FromBody] JoinRequest request)
         {
-            // Validate wallet balance, entry fees, existing join status etc
-            decimal entryFee = 50; // This should be dynamic from your contest data
+            // ✅ Wallet validation should be handled on frontend/backend jointly
+            decimal entryFee = 50; // ideally should be passed or fetched from Contest
 
             var user = await _userService.GetByUsername(request.Username);
+            if (user == null)
+                return NotFound("User not found");
+
             if (user.WalletBalance < entryFee)
                 return BadRequest("Insufficient balance.");
 
@@ -38,6 +42,36 @@ namespace CRICXI.Controllers
 
             return Ok();
         }
+
+        // ✅ API: Get all joined users for a specific contest (for Admin Details.cshtml)
+        [HttpGet("by-contest/{contestId}")]
+        public async Task<IActionResult> GetEntriesByContest(string contestId)
+        {
+            var entries = await _entryService.GetByContest(contestId);
+            var result = new List<object>();
+
+            foreach (var entry in entries)
+            {
+                var user = await _userService.GetByUsername(entry.Username);
+                result.Add(new
+                {
+                    entryId = entry.Id,
+                    username = entry.Username,
+                    email = user?.Email ?? "(unknown)",
+                    teamId = entry.TeamId
+                });
+            }
+
+            return Ok(result);
+        }
+
+        // ✅ API: Delete a user's entry from a contest
+        [HttpDelete("{entryId}")]
+        public async Task<IActionResult> DeleteEntry(string entryId)
+        {
+            await _entryService.RemoveEntry(entryId);
+            return Ok(new { message = "Entry removed." });
+        }
     }
 
     public class JoinRequest
@@ -47,5 +81,4 @@ namespace CRICXI.Controllers
         public string ContestId { get; set; }
         public string TeamId { get; set; }
     }
-
 }

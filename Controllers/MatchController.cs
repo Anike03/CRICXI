@@ -1,7 +1,6 @@
 ﻿using CRICXI.Models;
 using CRICXI.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace CRICXI.Controllers
 {
@@ -16,20 +15,11 @@ namespace CRICXI.Controllers
             _matchService = matchService;
         }
 
-        // ✅ This is purely for debug/testing purposes:
-        public async Task<IActionResult> Recent()
-        {
-            var data = await _api.GetRecentMatchesAsync();
-            ViewBag.Json = data;
-            return View();
-        }
-
-        // ✅ This now simply loads upcoming matches from your synced database
+        // ✅ Razor View (for admin/debug)
         public async Task<IActionResult> Upcoming()
         {
             var allMatches = await _matchService.GetAll();
 
-            // Only future matches based on UTC
             var upcoming = allMatches
                 .Where(m => m.StartDate > DateTime.UtcNow)
                 .OrderBy(m => m.StartDate)
@@ -38,14 +28,7 @@ namespace CRICXI.Controllers
             return View(upcoming);
         }
 
-
-        // ✅ LiveScore (optional)
-        public async Task<IActionResult> LiveScore(string id)
-        {
-            var data = await _api.GetLiveScoreAsync(id);
-            ViewBag.Json = data;
-            return View("LiveScore");
-        }
+        // ✅ Public API: Return simplified match JSON for frontend
         [HttpGet]
         [Route("api/match/upcoming")]
         public async Task<IActionResult> GetUpcomingMatches()
@@ -55,10 +38,34 @@ namespace CRICXI.Controllers
             var upcoming = allMatches
                 .Where(m => m.StartDate > DateTime.UtcNow)
                 .OrderBy(m => m.StartDate)
+                .Select(m => new
+                {
+                    matchId = m.CricbuzzMatchId,
+                    team1 = m.TeamA,
+                    team2 = m.TeamB,
+                    matchDesc = m.MatchDesc,
+                    venue = m.Status, // Change to m.Venue if your model has a separate venue field
+                    startDate = m.StartDate
+                })
                 .ToList();
 
-            return Json(upcoming); // ✅ Return as JSON
+            return Json(upcoming);
         }
 
+        // ✅ Optional LiveScore (API passthrough)
+        public async Task<IActionResult> LiveScore(string id)
+        {
+            var data = await _api.GetLiveScoreAsync(id);
+            ViewBag.Json = data;
+            return View("LiveScore");
+        }
+
+        // ✅ Optional Debug/Test endpoint for recent matches
+        public async Task<IActionResult> Recent()
+        {
+            var data = await _api.GetRecentMatchesAsync();
+            ViewBag.Json = data;
+            return View();
+        }
     }
 }

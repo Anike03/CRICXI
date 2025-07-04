@@ -28,7 +28,7 @@ namespace CRICXI.Controllers
 
         // ✅ API: All contests (used by React frontend)
         [HttpGet]
-        [Route("api/contests")]
+        [Route("api/contests/all")]
         public async Task<IActionResult> GetAllContests()
         {
             var contests = await _contestService.GetAll();
@@ -225,6 +225,5 @@ namespace CRICXI.Controllers
         {
             return HttpContext.Session.GetString("Role") == "Admin";
         }
-
     }
 }

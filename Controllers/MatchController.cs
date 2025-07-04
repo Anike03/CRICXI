@@ -46,5 +46,19 @@ namespace CRICXI.Controllers
             ViewBag.Json = data;
             return View("LiveScore");
         }
+        [HttpGet]
+        [Route("api/match/upcoming")]
+        public async Task<IActionResult> GetUpcomingMatches()
+        {
+            var allMatches = await _matchService.GetAll();
+
+            var upcoming = allMatches
+                .Where(m => m.StartDate > DateTime.UtcNow)
+                .OrderBy(m => m.StartDate)
+                .ToList();
+
+            return Json(upcoming); // ✅ Return as JSON
+        }
+
     }
 }

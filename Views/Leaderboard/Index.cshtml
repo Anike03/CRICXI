@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Leaderboard";
+    var leaderboard = ViewBag.Leaderboard;
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center text-warning">🏆 CRICXI Leaderboard</h2>
+
+    <table class="table table-dark table-striped table-bordered text-center">
+        <thead class="thead-light">
+            <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Joined Contests</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in leaderboard)
+            {
+                <tr>
+                    <td>@entry.Rank</td>
+                    <td>@entry.Username</td>
+                    <td>@entry.Email</td>
+                    <td>@entry.JoinedContests</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,25 +1,41 @@
-﻿using CRICXI.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using CRICXI.Services;
 
 namespace CRICXI.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class LeaderboardController : ControllerBase
+    public class LeaderboardController : Controller
     {
-        private readonly LeaderboardService _leaderboardService;
+        private readonly ContestEntryService _entryService;
+        private readonly UserService _userService;
 
-        public LeaderboardController(LeaderboardService leaderboardService)
+        public LeaderboardController(ContestEntryService entryService, UserService userService)
         {
-            _leaderboardService = leaderboardService;
+            _entryService = entryService;
+            _userService = userService;
         }
 
-        // ✅ Returns leaderboard of users sorted by number of contests joined
-        [HttpGet]
-        public async Task<IActionResult> GetJoinedLeaderboard()
+        public async Task<IActionResult> Index()
         {
-            var leaderboard = await _leaderboardService.GetLeaderboard();
-            return Ok(leaderboard);
+            var users = await _userService.GetAllUsers();
+            var entries = await _entryService.GetAll();
+
+            var leaderboard = users.Select(u => new
+            {
+                u.Username,
+                u.Email,
+                JoinedContests = entries.Count(e => e.Username == u.Username)
+            })
+            .OrderByDescending(x => x.JoinedContests)
+            .Select((x, i) => new
+            {
+                Rank = i + 1,
+                x.Username,
+                x.Email,
+                x.JoinedContests
+            }).ToList();
+
+            ViewBag.Leaderboard = leaderboard;
+            return View();
         }
     }
 }

@@ -33,6 +33,7 @@ builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<ContestEntryService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<CricketNewsService>();
+builder.Services.AddScoped<LeaderboardService>();
 
 
 // 🔧 Add HttpClientFactory services

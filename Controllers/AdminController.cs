@@ -15,6 +15,7 @@ namespace CRICXI.Controllers
         private readonly FantasyTeamService _teamService;
         private readonly CricbuzzApiService _cricbuzzApiService;
         private readonly PlayerService _playerService;
+        private readonly ContestEntryService _contestEntryService;
 
         public AdminController(
             MatchService matchService,
@@ -22,7 +23,8 @@ namespace CRICXI.Controllers
             UserService userService,
             FantasyTeamService teamService,
             CricbuzzApiService cricbuzzApiService,
-            PlayerService playerService)
+            PlayerService playerService,
+            ContestEntryService contestEntryService)
         {
             _matchService = matchService;
             _contestService = contestService;
@@ -30,6 +32,7 @@ namespace CRICXI.Controllers
             _teamService = teamService;
             _cricbuzzApiService = cricbuzzApiService;
             _playerService = playerService;
+            _contestEntryService = contestEntryService;
         }
 
         private bool IsAdmin()
@@ -371,6 +374,23 @@ namespace CRICXI.Controllers
             var user = await _userService.GetByEmail(email);
             if (user == null) return NotFound();
             return Ok(user);
+        }
+        [HttpGet]
+        public async Task<IActionResult> Leaderboard()
+        {
+            if (!IsAdmin()) return Unauthorized();
+
+            var users = await _userService.GetAllUsers();
+            var entries = await _contestEntryService.GetAll();
+
+            var leaderboard = users.Select(u => new LeaderboardEntry
+            {
+                Username = u.Username,
+                Email = u.Email,
+                JoinedContests = entries.Count(e => e.Username == u.Username)
+            }).OrderByDescending(l => l.JoinedContests).ToList();
+
+            return View(leaderboard);
         }
 
 

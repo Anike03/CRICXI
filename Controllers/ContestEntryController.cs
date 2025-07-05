@@ -72,6 +72,29 @@ namespace CRICXI.Controllers
             await _entryService.RemoveEntry(entryId);
             return Ok(new { message = "Entry removed." });
         }
+        [HttpGet("/api/leaderboard")]
+        public async Task<IActionResult> GetLeaderboard()
+        {
+            var joinCounts = await _entryService.GetContestJoinCountsPerUser();
+            var leaderboard = new List<LeaderboardEntry>();
+
+            foreach (var (username, count) in joinCounts)
+            {
+                var user = await _userService.GetByUsername(username);
+                leaderboard.Add(new LeaderboardEntry
+                {
+                    Username = username,
+                    Email = user?.Email ?? "(unknown)",
+                    JoinedContests = count
+                });
+            }
+
+            // Optional: Sort by most active
+            leaderboard = leaderboard.OrderByDescending(x => x.JoinedContests).ToList();
+
+            return Ok(leaderboard);
+        }
+
     }
 
     public class JoinRequest

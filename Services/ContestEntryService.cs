@@ -32,22 +32,14 @@ namespace CRICXI.Services
         public async Task RemoveEntry(string entryId) =>
             await _entries.DeleteOneAsync(e => e.Id == entryId);
 
-        // 🔄 (Optional) Advanced: Join entries with user info if needed in future
-        //public async Task<List<object>> GetByContestWithUsers(string contestId, IMongoCollection<User> users)
-        //{
-        //    var pipeline = new[]
-        //    {
-        //         new BsonDocument("$match", new BsonDocument("ContestId", contestId)),
-        //         new BsonDocument("$lookup", new BsonDocument
-        //         {
-        //             { "from", "Users" },
-        //             { "localField", "Username" },
-        //             { "foreignField", "Username" },
-        //             { "as", "UserDetails" }
-        //         })
-        //     };
+        public async Task<Dictionary<string, int>> GetContestJoinCountsPerUser()
+        {
+            var allEntries = await _entries.Find(_ => true).ToListAsync();
 
-        //    return await _entries.Aggregate<object>(pipeline).ToListAsync();
-        //}
+            return allEntries
+                .GroupBy(e => e.Username)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
     }
 }

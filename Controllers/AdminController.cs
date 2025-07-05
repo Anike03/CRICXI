@@ -365,6 +365,14 @@ namespace CRICXI.Controllers
 
             return Ok(new { wallet = user.WalletBalance });
         }
+        [HttpGet("/api/users/get-by-email")]
+        public async Task<IActionResult> GetByEmail(string email)
+        {
+            var user = await _userService.GetByEmail(email);
+            if (user == null) return NotFound();
+            return Ok(user);
+        }
+
 
 
 

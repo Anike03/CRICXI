@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CRICXI.Models;
 using CRICXI.Services;
-using CRICXI.Models;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CRICXI.Controllers
 {

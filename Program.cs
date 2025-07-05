@@ -77,13 +77,15 @@ else
 }
 
 // 🔧 HTTP pipeline
+// 🔧 HTTP pipeline
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
 app.UseCors("AllowReact");
+app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 // 🔧 Map both API routes & optional Razor MVC
 app.MapControllers();

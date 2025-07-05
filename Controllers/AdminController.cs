@@ -355,6 +355,17 @@ namespace CRICXI.Controllers
 
             return RedirectToAction("AllUsers");
         }
+        [HttpGet("/api/users/wallet")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetWallet([FromQuery] string email)
+        {
+            var user = await _userService.GetByEmail(email);
+            if (user == null)
+                return NotFound("User not found");
+
+            return Ok(new { wallet = user.WalletBalance });
+        }
+
 
 
     }

@@ -15,7 +15,7 @@ namespace CRICXI.Controllers
             _userService = userService;
         }
 
-        // 🔹 Razor view: /Leaderboard
+        // 🔹 Razor view: /Leaderboard (admin view)
         [HttpGet("/Leaderboard")]
         public async Task<IActionResult> Index()
         {
@@ -24,15 +24,28 @@ namespace CRICXI.Controllers
             return View();
         }
 
-        // 🔹 API JSON endpoint: /api/leaderboard
+        // 🔹 API JSON: /api/leaderboard (frontend consumption)
         [HttpGet("/api/leaderboard")]
         public async Task<IActionResult> GetLeaderboardData()
         {
             var leaderboard = await BuildLeaderboard();
-            return Ok(leaderboard);
+
+            // Convert to anonymous object with Rank
+            var ranked = leaderboard
+                .OrderByDescending(e => e.JoinedContests)
+                .Select((e, i) => new
+                {
+                    Rank = i + 1,
+                    e.Username,
+                    e.Email,
+                    e.JoinedContests
+                })
+                .ToList();
+
+            return Ok(ranked);
         }
 
-        // 🔁 Shared logic for computing leaderboard
+        // 🔁 Shared logic
         private async Task<List<LeaderboardEntry>> BuildLeaderboard()
         {
             var users = await _userService.GetAllUsers();
@@ -47,12 +60,6 @@ namespace CRICXI.Controllers
                 })
                 .OrderByDescending(x => x.JoinedContests)
                 .ToList();
-
-            // ✅ Add ranks
-            for (int i = 0; i < leaderboard.Count; i++)
-            {
-                leaderboard[i].Rank = i + 1;
-            }
 
             return leaderboard;
         }

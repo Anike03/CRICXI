@@ -1,7 +1,9 @@
-﻿@{
+﻿@using CRICXI.Models
+@{
     ViewData["Title"] = "Leaderboard";
-    var leaderboard = ViewBag.Leaderboard;
+    var leaderboard = ViewBag.Leaderboard as List<LeaderboardEntry>;
 }
+
 
 <div class="container mt-5">
     <h2 class="mb-4 text-center text-warning">🏆 CRICXI Leaderboard</h2>
@@ -16,13 +18,24 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var entry in leaderboard)
+            @if (leaderboard != null && leaderboard.Any())
+            {
+                int rank = 1;
+                foreach (var entry in leaderboard)
+                {
+                    <tr>
+                        <td>@rank</td>
+                        <td>@entry.Username</td>
+                        <td>@entry.Email</td>
+                        <td>@entry.JoinedContests</td>
+                    </tr>
+                    rank++;
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@entry.Rank</td>
-                    <td>@entry.Username</td>
-                    <td>@entry.Email</td>
-                    <td>@entry.JoinedContests</td>
+                    <td colspan="4" class="text-center text-muted">No leaderboard data available</td>
                 </tr>
             }
         </tbody>

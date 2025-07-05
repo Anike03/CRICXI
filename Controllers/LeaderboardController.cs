@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CRICXI.Services;
+using CRICXI.Models;
 
 namespace CRICXI.Controllers
 {
@@ -14,53 +15,46 @@ namespace CRICXI.Controllers
             _userService = userService;
         }
 
+        // 🔹 Razor view: /Leaderboard
+        [HttpGet("/Leaderboard")]
         public async Task<IActionResult> Index()
         {
-            var users = await _userService.GetAllUsers();
-            var entries = await _entryService.GetAll();
-
-            var leaderboard = users.Select(u => new
-            {
-                u.Username,
-                u.Email,
-                JoinedContests = entries.Count(e => e.Username == u.Username)
-            })
-            .OrderByDescending(x => x.JoinedContests)
-            .Select((x, i) => new
-            {
-                Rank = i + 1,
-                x.Username,
-                x.Email,
-                x.JoinedContests
-            }).ToList();
-
+            var leaderboard = await BuildLeaderboard();
             ViewBag.Leaderboard = leaderboard;
             return View();
         }
+
+        // 🔹 API JSON endpoint: /api/leaderboard
         [HttpGet("/api/leaderboard")]
         public async Task<IActionResult> GetLeaderboardData()
+        {
+            var leaderboard = await BuildLeaderboard();
+            return Ok(leaderboard);
+        }
+
+        // 🔁 Shared logic for computing leaderboard
+        private async Task<List<LeaderboardEntry>> BuildLeaderboard()
         {
             var users = await _userService.GetAllUsers();
             var entries = await _entryService.GetAll();
 
-            var leaderboard = users.Select(u => new
-            {
-                u.Username,
-                u.Email,
-                JoinedContests = entries.Count(e => e.Username == u.Username)
-            })
-            .OrderByDescending(x => x.JoinedContests)
-            .Select((x, i) => new
-            {
-                Rank = i + 1,
-                x.Username,
-                x.Email,
-                x.JoinedContests
-            }).ToList();
+            var leaderboard = users
+                .Select(u => new LeaderboardEntry
+                {
+                    Username = u.Username,
+                    Email = u.Email,
+                    JoinedContests = entries.Count(e => e.Username == u.Username)
+                })
+                .OrderByDescending(x => x.JoinedContests)
+                .ToList();
 
-            return Ok(leaderboard);
+            // ✅ Add ranks
+            for (int i = 0; i < leaderboard.Count; i++)
+            {
+                leaderboard[i].Rank = i + 1;
+            }
+
+            return leaderboard;
         }
-
-
     }
 }

@@ -5,6 +5,7 @@
         public string? Username { get; set; }
         public string? Email { get; set; }
         public int JoinedContests { get; set; }
+        public int Rank { get; set; }
     }
 
 }

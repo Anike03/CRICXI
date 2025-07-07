@@ -69,7 +69,6 @@ namespace CRICXI.Services
         {
             return await GetLiveScoreAsync(matchId);
         }
-        // Add these new methods to CricbuzzApiService.cs
 
         // Get detailed match info
         public async Task<string> GetMatchInfoAsync(string matchId)
@@ -97,6 +96,54 @@ namespace CRICXI.Services
             request.Headers.Add("x-apihub-key", _apiKey);
             request.Headers.Add("x-apihub-host", _host);
             request.Headers.Add("x-apihub-endpoint", "be37c2f5-3a12-44bd-8d8b-ba779eb89279"); // Squads endpoint
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        // Get team players
+        public async Task<string> GetTeamPlayersAsync(int teamId)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_baseUrl}/team/{teamId}/players"
+            );
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", "2b298a5d-fb51-4e29-aa15-c5385291fcd8"); // Team players endpoint
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        // Get series squads
+        public async Task<string> GetSeriesSquadsAsync(int seriesId)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_baseUrl}/series/{seriesId}/squads"
+            );
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", "038d223b-aca5-4096-8eb1-184dd0c09513"); // Series squads endpoint
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        // Get squad details for a specific squad in a series
+        public async Task<string> GetSeriesSquadDetailsAsync(int seriesId, int squadId)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_baseUrl}/series/{seriesId}/squads/{squadId}"
+            );
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", "c4b3ccd2-0bb1-4d94-98c9-b31f389480be"); // Series squad details endpoint
 
             var response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();

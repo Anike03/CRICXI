@@ -26,6 +26,21 @@ namespace CRICXI.Controllers
                 .OrderBy(m => m.StartDate)
                 .ToList();
 
+            // ✅ Return BOTH internal MongoDB ID and CricbuzzMatchId
+            var result = upcoming.Select(m => new
+            {
+                matchId = m.Id,
+                cricbuzzMatchId = m.CricbuzzMatchId,
+                team1 = m.TeamA,
+                team2 = m.TeamB,
+                matchDesc = m.MatchDesc,
+                startDate = m.StartDate,
+                venue = "TBD" // Optional, update as needed
+            });
+
+       
+
+
             return View(upcoming);
         }
 

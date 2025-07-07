@@ -64,13 +64,16 @@ namespace CRICXI.Controllers
             return View();
         }
 
-        // ✅ MATCHES MANAGEMENT
+        // MATCHES MANAGEMENT
         [HttpGet]
         public async Task<IActionResult> SyncMatches()
         {
             if (!IsAdmin()) return Unauthorized();
 
             var json = await _cricbuzzApiService.GetUpcomingMatchesAsync();
+            int matchesProcessed = 0;
+            int matchesWithVenue = 0;
+
             using (JsonDocument doc = JsonDocument.Parse(json))
             {
                 if (doc.RootElement.TryGetProperty("typeMatches", out var typeMatches))
@@ -93,6 +96,21 @@ namespace CRICXI.Controllers
                                             var matchDesc = matchInfo.GetProperty("matchDesc").GetString() ?? "";
                                             var cricbuzzMatchId = matchInfo.GetProperty("matchId").ToString();
 
+                                            // Enhanced venue extraction
+                                            string venue = "Unknown Venue";
+                                            if (matchInfo.TryGetProperty("venueInfo", out var venueInfo))
+                                            {
+                                                if (venueInfo.TryGetProperty("ground", out var ground))
+                                                {
+                                                    venue = ground.GetString() ?? "Unknown Ground";
+                                                    matchesWithVenue++;
+                                                }
+                                                else if (venueInfo.TryGetProperty("city", out var city))
+                                                {
+                                                    venue = city.GetString() ?? "Unknown City";
+                                                }
+                                            }
+
                                             var startMillis = matchInfo.GetProperty("startDate").GetString();
                                             var startDate = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(startMillis)).DateTime;
 
@@ -102,11 +120,13 @@ namespace CRICXI.Controllers
                                                 TeamA = team1,
                                                 TeamB = team2,
                                                 MatchDesc = matchDesc,
+                                                Venue = venue,
                                                 StartDate = startDate,
                                                 Status = "Upcoming"
                                             };
 
                                             await _matchService.SaveIfNotExists(match);
+                                            matchesProcessed++;
                                         }
                                     }
                                 }
@@ -116,6 +136,7 @@ namespace CRICXI.Controllers
                 }
             }
 
+            TempData["SyncResult"] = $"Successfully processed {matchesProcessed} matches. {matchesWithVenue} had venue information.";
             return RedirectToAction("AllMatches");
         }
 
@@ -127,7 +148,7 @@ namespace CRICXI.Controllers
             return View(matches);
         }
 
-        // ✅ CONTEST MANAGEMENT
+        // CONTEST MANAGEMENT
         [HttpGet]
         public async Task<IActionResult> AllContests()
         {
@@ -156,14 +177,14 @@ namespace CRICXI.Controllers
                 contest.TeamA = match.TeamA;
                 contest.TeamB = match.TeamB;
                 contest.StartDate = match.StartDate;
+                //contest.Venue = match.Venue;
             }
 
             await _contestService.Create(contest);
             return RedirectToAction("AllContests");
         }
 
-
-        // ✅ USERS MANAGEMENT
+        // USERS MANAGEMENT
         [HttpGet]
         public async Task<IActionResult> AllUsers()
         {
@@ -204,7 +225,7 @@ namespace CRICXI.Controllers
             return RedirectToAction("AllUsers");
         }
 
-        // ✅ FANTASY TEAMS MANAGEMENT
+        // FANTASY TEAMS MANAGEMENT
         [HttpGet]
         public async Task<IActionResult> AllFantasyTeams()
         {
@@ -213,7 +234,7 @@ namespace CRICXI.Controllers
             return View(teams);
         }
 
-        // ✅ PLAYER SYNC + ROLE MANAGEMENT
+        // PLAYER SYNC + ROLE MANAGEMENT
         [HttpGet]
         public async Task<IActionResult> SyncPlayers(string matchId)
         {
@@ -285,6 +306,7 @@ namespace CRICXI.Controllers
             TempData["Success"] = "Player roles updated successfully!";
             return RedirectToAction("ManagePlayers", new { matchId });
         }
+
         [HttpGet]
         public async Task<IActionResult> EditContest(string id)
         {
@@ -334,7 +356,7 @@ namespace CRICXI.Controllers
                 Username = dto.Username ?? dto.Email.Split('@')[0],
                 Email = dto.Email,
                 WalletBalance = 1000,
-                IsEmailConfirmed = true, // assumed verified via Firebase
+                IsEmailConfirmed = true,
                 Role = "User",
                 IsBannedUntil = null
             };
@@ -343,6 +365,7 @@ namespace CRICXI.Controllers
 
             return Ok(newUser);
         }
+
         [HttpPost]
         public async Task<IActionResult> UnbanUser(string userId)
         {
@@ -358,6 +381,7 @@ namespace CRICXI.Controllers
 
             return RedirectToAction("AllUsers");
         }
+
         [HttpGet("/api/users/wallet")]
         [AllowAnonymous]
         public async Task<IActionResult> GetWallet([FromQuery] string email)
@@ -368,6 +392,7 @@ namespace CRICXI.Controllers
 
             return Ok(new { wallet = user.WalletBalance });
         }
+
         [HttpGet("/api/users/get-by-email")]
         public async Task<IActionResult> GetByEmail(string email)
         {
@@ -375,6 +400,7 @@ namespace CRICXI.Controllers
             if (user == null) return NotFound();
             return Ok(user);
         }
+
         [HttpGet]
         public async Task<IActionResult> Leaderboard()
         {
@@ -392,9 +418,6 @@ namespace CRICXI.Controllers
 
             return View(leaderboard);
         }
-
-
-
 
     }
 }

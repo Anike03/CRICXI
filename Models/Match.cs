@@ -17,7 +17,7 @@ namespace CRICXI.Models
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime StartDate { get; set; }
-
+        public string? Venue { get; set; }
         public string? Status { get; set; }
 
         // Toronto time display properties

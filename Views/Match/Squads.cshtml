@@ -1,0 +1,105 @@
+﻿@model List<CRICXI.Models.TeamSquad>
+@{
+    ViewData["Title"] = "Team Squads";
+    Layout = "_Layout";
+}
+
+<style>
+    body {
+        background: url('/images/stadium.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .overlay {
+        background-color: rgba(0, 0, 0, 0.75);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-top: 2rem;
+    }
+
+    h2 {
+        text-align: center;
+        font-weight: bold;
+        color: #ffd700;
+        text-shadow: 2px 2px #000;
+    }
+
+    .team-squad {
+        margin-bottom: 2rem;
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 1.5rem;
+        border-radius: 10px;
+        color: #000;
+    }
+
+        .team-squad h4 {
+            margin-bottom: 1rem;
+            color: #d32f2f;
+        }
+
+    .squad-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .squad-table th,
+        .squad-table td {
+            border: 1px solid #ccc;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .squad-table th {
+            background-color: #f44336;
+            color: white;
+        }
+
+    .no-squad {
+        text-align: center;
+        font-size: 1.2rem;
+        background-color: rgba(255, 0, 0, 0.2);
+        color: #f8d7da;
+        border: 1px solid #dc3545;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="container overlay">
+    <h2>🧢 Match Squads</h2>
+
+    @if (Model == null || Model.Count == 0 || Model.All(t => t.Players.Count == 0))
+    {
+        <div class="no-squad">
+            Squad information is not available yet. Please check back closer to match time.
+        </div>
+    }
+    else
+    {
+        foreach (var team in Model)
+        {
+            <div class="team-squad">
+                <h4>@team.TeamName</h4>
+                <table class="squad-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var player in team.Players)
+                        {
+                            <tr>
+                                <td>@player.Name</td>
+                                <td>@player.Role</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>

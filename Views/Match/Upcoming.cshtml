@@ -1,7 +1,7 @@
 ﻿@model List<CRICXI.Models.Match>
 @{
     ViewData["Title"] = "Upcoming Matches";
-    Layout = "_Layout"; // or set null if you want fullscreen
+    Layout = "_Layout";
 }
 
 <style>
@@ -54,6 +54,11 @@
         padding: 1rem;
         border-radius: 8px;
     }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
 </style>
 
 <div class="container overlay">
@@ -72,8 +77,11 @@
                 <tr>
                     <th>Description</th>
                     <th>Teams</th>
+                    <th>Venue</th>
+                    <th>Status</th>
                     <th>Date (Toronto)</th>
                     <th>Time (Toronto)</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,8 +90,16 @@
                     <tr>
                         <td>@match.MatchDesc</td>
                         <td><strong>@match.TeamA</strong> vs <strong>@match.TeamB</strong></td>
+                        <td>@match.Venue</td>
+                        <td>@match.Status</td>
                         <td>@match.TorontoDate</td>
                         <td>@match.TorontoTime</td>
+                        <td>
+                            <a href="@Url.Action("Info", "Match", new { matchId = match.CricbuzzMatchId })"
+                               class="btn btn-sm btn-primary" target="_blank">Info</a>
+                            <a href="@Url.Action("Squads", "Match", new { matchId = match.CricbuzzMatchId })"
+                               class="btn btn-sm btn-success" target="_blank">Squads</a>
+                        </td>
                     </tr>
                 }
             </tbody>

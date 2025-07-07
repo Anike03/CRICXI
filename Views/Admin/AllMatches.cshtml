@@ -208,6 +208,27 @@
             align-items: flex-start;
             gap: 2px;
         }
+
+        .venue-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-squads {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
     }
 </style>
 
@@ -223,6 +244,14 @@
             </a>
         </div>
     </div>
+
+    @if (TempData["SyncResult"] != null)
+    {
+        <div class="alert alert-info">
+            @TempData["SyncResult"]
+        </div>
+    }
+
 
     @if (!Model.Any())
     {
@@ -240,6 +269,7 @@
                     <tr>
                         <th>Match</th>
                         <th>Teams</th>
+                        <th>Venue</th>
                         <th>Start Date</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -267,7 +297,12 @@
                         }
 
                         <tr>
-                            <td>@match.MatchDesc</td>
+                            <td>
+                                @match.MatchDesc
+                                <div class="venue-info">
+                                    @match.Venue
+                                </div>
+                            </td>
                             <td>
                                 <div class="team-display">
                                     <span class="team-a">@match.TeamA</span>
@@ -275,15 +310,26 @@
                                     <span class="team-b">@match.TeamB</span>
                                 </div>
                             </td>
+                            <td>@match.Venue</td>
                             <td>@match.StartDate.ToString("dd MMM yyyy hh:mm tt")</td>
                             <td>
                                 <span class="match-status @statusClass">@statusText</span>
                             </td>
                             <td>
-                                <a asp-action="CreateContest" asp-route-matchId="@match.Id"
-                                   class="btn btn-success btn-sm action-btn">
-                                    <i class="fas fa-trophy"></i> Create Contest
-                                </a>
+                                <div class="action-buttons">
+                                    <a asp-action="CreateContest" asp-route-matchId="@match.Id"
+                                       class="btn btn-success btn-sm action-btn">
+                                        <i class="fas fa-trophy"></i> Contest
+                                    </a>
+                                    <a asp-controller="Match" asp-action="Squads" asp-route-matchId="@match.CricbuzzMatchId"
+                                       class="btn btn-squads btn-sm">
+                                        <i class="fas fa-users"></i> Squads
+                                    </a>
+                                    <a asp-controller="Match" asp-action="Info" asp-route-matchId="@match.CricbuzzMatchId"
+                                       class="btn btn-info btn-sm">
+                                        <i class="fas fa-info-circle"></i> Info
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }

@@ -1,0 +1,63 @@
+﻿@model CRICXI.Models.MatchInfoModel
+@{
+    ViewData["Title"] = "Match Info";
+    Layout = "_Layout";
+}
+
+<style>
+    body {
+        background: url('/images/stadium.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .overlay {
+        background-color: rgba(0, 0, 0, 0.75);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-top: 2rem;
+    }
+
+    .match-title {
+        color: #ffd700;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        text-shadow: 2px 2px #000;
+    }
+
+    .info-item {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+
+    .team-name {
+        font-weight: bold;
+        color: #ffd700;
+    }
+</style>
+
+<div class="container overlay">
+    <h2 class="match-title">@Model.MatchDesc</h2>
+
+    <div class="info-item">
+        <strong>Teams:</strong> <span class="team-name">@Model.TeamA</span> vs <span class="team-name">@Model.TeamB</span>
+    </div>
+    <div class="info-item">
+        <strong>Venue:</strong> @Model.Venue
+    </div>
+    <div class="info-item">
+        <strong>Status:</strong> @Model.Status
+    </div>
+    <div class="info-item">
+        <strong>Toss:</strong> @Model.Toss
+    </div>
+    <div class="info-item">
+        <strong>Date (Toronto):</strong> @Model.TorontoDate
+    </div>
+    <div class="info-item">
+        <strong>Time (Toronto):</strong> @Model.TorontoTime
+    </div>
+</div>

@@ -15,11 +15,11 @@ namespace CRICXI.Services
         public CricbuzzApiService(IConfiguration config)
         {
             _client = new HttpClient();
-            _baseUrl = config["CricbuzzApi:BaseUrl"];
-            _apiKey = config["CricbuzzApi:ApiKey"];
-            _host = config["CricbuzzApi:Host"];
-            _matchEndpoint = config["CricbuzzApi:Endpoint"];
-            _newsEndpoint = config["CricketNewsApi:Endpoint"];
+            _baseUrl = config["CricbuzzApi:BaseUrl"] ?? throw new ArgumentNullException("BaseUrl");
+            _apiKey = config["CricbuzzApi:ApiKey"] ?? throw new ArgumentNullException("ApiKey");
+            _host = config["CricbuzzApi:Host"] ?? throw new ArgumentNullException("Host");
+            _matchEndpoint = config["CricbuzzApi:Endpoint"] ?? throw new ArgumentNullException("Endpoint");
+            _newsEndpoint = config["CricketNewsApi:Endpoint"] ?? throw new ArgumentNullException("NewsEndpoint");
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -68,6 +68,39 @@ namespace CRICXI.Services
         public async Task<string> GetPlayersByMatchAsync(string matchId)
         {
             return await GetLiveScoreAsync(matchId);
+        }
+        // Add these new methods to CricbuzzApiService.cs
+
+        // Get detailed match info
+        public async Task<string> GetMatchInfoAsync(string matchId)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_baseUrl}/match/{matchId}"
+            );
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", "ac951751-d311-4d23-8f18-353e75432353"); // Match info endpoint
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        // Get match squads
+        public async Task<string> GetMatchSquadsAsync(string matchId)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_baseUrl}/match/{matchId}/squads"
+            );
+            request.Headers.Add("x-apihub-key", _apiKey);
+            request.Headers.Add("x-apihub-host", _host);
+            request.Headers.Add("x-apihub-endpoint", "be37c2f5-3a12-44bd-8d8b-ba779eb89279"); // Squads endpoint
+
+            var response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }

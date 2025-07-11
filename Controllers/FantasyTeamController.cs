@@ -1,35 +1,41 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using CRICXI.Models;
+﻿using CRICXI.Models;
 using CRICXI.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CRICXI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/team")]
     public class FantasyTeamController : ControllerBase
     {
-        private readonly FantasyTeamService _fantasyTeamService;
+        private readonly FantasyTeamService _teamService;
 
-        public FantasyTeamController(FantasyTeamService fantasyTeamService)
+        public FantasyTeamController(FantasyTeamService teamService)
         {
-            _fantasyTeamService = fantasyTeamService;
+            _teamService = teamService;
         }
 
+        // POST: api/team/create
         [HttpPost("create")]
         public async Task<IActionResult> CreateTeam([FromBody] FantasyTeam team)
         {
-            if (team == null || team.Players == null || team.Players.Count == 0)
-                return BadRequest("Invalid team data");
+            if (string.IsNullOrWhiteSpace(team.Username) || team.Players == null || !team.Players.Any())
+                return BadRequest("Invalid team data.");
 
-            await _fantasyTeamService.Create(team);
-            return Ok("Team Saved Successfully");
+            await _teamService.CreateTeamAsync(team);
+            return Ok(team);
         }
-        [HttpGet("user/{username}")]
-        public async Task<IActionResult> GetUserTeams(string username)
+
+        // GET: api/team/match/{matchId}
+        [HttpGet("match/{matchId}")]
+        public async Task<IActionResult> GetTeamsByMatch(string matchId)
         {
-            var teams = await _fantasyTeamService.GetByUser(username);
+            var username = User?.Identity?.Name ?? HttpContext.Request.Headers["Username"].ToString();
+            if (string.IsNullOrEmpty(username))
+                return BadRequest("Username is required.");
+
+            var teams = await _teamService.GetByUserAndMatch(username, matchId);
             return Ok(teams);
         }
-
     }
 }

@@ -34,6 +34,7 @@ builder.Services.AddScoped<ContestEntryService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<CricketNewsService>();
 builder.Services.AddScoped<LeaderboardService>();
+builder.Services.AddSingleton<FantasyTeamService>();
 
 
 // 🔧 Add HttpClientFactory services

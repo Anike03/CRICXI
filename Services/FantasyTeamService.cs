@@ -1,8 +1,6 @@
 ﻿using CRICXI.Models;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CRICXI.Services
 {
@@ -10,39 +8,32 @@ namespace CRICXI.Services
     {
         private readonly IMongoCollection<FantasyTeam> _teams;
 
-        public FantasyTeamService(IMongoDatabase db)
+        public FantasyTeamService(IConfiguration config)
         {
-            _teams = db.GetCollection<FantasyTeam>("FantasyTeams");
+            var client = new MongoClient(config.GetConnectionString("MongoDb"));
+            var database = client.GetDatabase("CRICXI");
+            _teams = database.GetCollection<FantasyTeam>("FantasyTeams");
         }
 
-        // ✅ Get teams by user (all matches)
-        public async Task<List<FantasyTeam>> GetByUser(string username)
-        {
-            return await _teams.Find(t => t.Username == username).ToListAsync();
-        }
-
-        // ✅ Get teams by user for specific match
         public async Task<List<FantasyTeam>> GetByUserAndMatch(string username, string matchId)
         {
             return await _teams.Find(t => t.Username == username && t.MatchId == matchId).ToListAsync();
         }
 
-        // ✅ Create fantasy team
-        public async Task Create(FantasyTeam team)
+        public async Task CreateTeamAsync(FantasyTeam team)
         {
             await _teams.InsertOneAsync(team);
         }
 
-        // ✅ Get all fantasy teams for specific match (used by leaderboard)
-        public async Task<List<FantasyTeam>> GetAllTeamsByMatch(string matchId)
-        {
-            return await _teams.Find(t => t.MatchId == matchId).ToListAsync();
-        }
-
-        // ✅ FULL ADMIN: Get all fantasy teams (for Admin Panel)
         public async Task<List<FantasyTeam>> GetAllTeams()
         {
             return await _teams.Find(_ => true).ToListAsync();
         }
+        public async Task<bool> CanCreateTeam(string username, string matchId)
+        {
+            var count = await _teams.CountDocumentsAsync(t => t.Username == username && t.MatchId == matchId);
+            return count < 3;
+        }
+
     }
 }

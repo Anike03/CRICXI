@@ -15,18 +15,26 @@ namespace CRICXI.Controllers
             _teamService = teamService;
         }
 
-        // POST: api/team/create
         [HttpPost("create")]
         public async Task<IActionResult> CreateTeam([FromBody] FantasyTeam team)
         {
+            Console.WriteLine("Received team:");
+            Console.WriteLine($"Username: {team.Username}");
+            Console.WriteLine($"MatchId: {team.MatchId}");
+            Console.WriteLine($"TeamName: {team.TeamName}");
+            Console.WriteLine($"Players Count: {team.Players?.Count}");
+
             if (string.IsNullOrWhiteSpace(team.Username) || team.Players == null || !team.Players.Any())
                 return BadRequest("Invalid team data.");
+
+            var canCreate = await _teamService.CanCreateTeam(team.Username, team.MatchId);
+            if (!canCreate)
+                return BadRequest("Maximum 3 teams already created for this match.");
 
             await _teamService.CreateTeamAsync(team);
             return Ok(team);
         }
 
-        // GET: api/team/match/{matchId}
         [HttpGet("match/{matchId}")]
         public async Task<IActionResult> GetTeamsByMatch(string matchId)
         {

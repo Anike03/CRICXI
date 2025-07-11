@@ -23,5 +23,6 @@ namespace CRICXI.Models
         public int TotalPrize { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     }
 }

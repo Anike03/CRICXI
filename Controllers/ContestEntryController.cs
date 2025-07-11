@@ -9,41 +9,51 @@ namespace CRICXI.Controllers
     public class ContestEntryController : ControllerBase
     {
         private readonly ContestEntryService _entryService;
+        private readonly ContestService _contestService;
         private readonly UserService _userService;
 
-        public ContestEntryController(ContestEntryService entryService, UserService userService)
+        public ContestEntryController(ContestEntryService entryService, ContestService contestService, UserService userService)
         {
             _entryService = entryService;
+            _contestService = contestService;
             _userService = userService;
         }
 
-        // ✅ API: Join a contest
+        // ✅ Join a contest
         [HttpPost("join")]
-        public async Task<IActionResult> JoinContest([FromBody] JoinRequest request)
+        public async Task<IActionResult> JoinContest([FromBody] ContestEntry entry)
         {
-            // ✅ Wallet validation should be handled on frontend/backend jointly
-            decimal entryFee = 50; // ideally should be passed or fetched from Contest
+            if (entry == null)
+                return BadRequest("Entry is null");
 
-            var user = await _userService.GetByUsername(request.Username);
+            var contest = await _contestService.GetById(entry.ContestId);
+            if (contest == null)
+                return NotFound("Contest not found");
+
+            var alreadyJoined = await _entryService.HasUserJoined(entry.ContestId, entry.Username);
+            if (alreadyJoined)
+                return BadRequest("User already joined this contest");
+
+            var joinedCount = await _entryService.GetJoinedCount(entry.ContestId);
+            if (joinedCount >= contest.MaxParticipants)
+                return BadRequest("Contest is full");
+
+            var user = await _userService.GetByUsername(entry.Username);
             if (user == null)
                 return NotFound("User not found");
 
-            if (user.WalletBalance < entryFee)
-                return BadRequest("Insufficient balance.");
+            if (user.WalletBalance < contest.EntryFee)
+                return BadRequest("Insufficient wallet balance");
 
-            await _userService.UpdateWallet(user.Id, entryFee, addFunds: false);
-            await _entryService.Add(new ContestEntry
-            {
-                ContestId = request.ContestId,
-                MatchId = request.MatchId,
-                Username = request.Username,
-                TeamId = request.TeamId
-            });
+            var success = await _userService.UpdateWallet(user.Id, contest.EntryFee, addFunds: false);
+            if (!success)
+                return BadRequest("Failed to deduct balance");
 
-            return Ok();
+            await _entryService.Add(entry);
+            return Ok("Joined successfully");
         }
 
-        // ✅ API: Get all joined users for a specific contest (for Admin Details.cshtml)
+        // ✅ Get all entries for a contest
         [HttpGet("by-contest/{contestId}")]
         public async Task<IActionResult> GetEntriesByContest(string contestId)
         {
@@ -65,13 +75,15 @@ namespace CRICXI.Controllers
             return Ok(result);
         }
 
-        // ✅ API: Delete a user's entry from a contest
+        // ✅ Delete a contest entry
         [HttpDelete("{entryId}")]
         public async Task<IActionResult> DeleteEntry(string entryId)
         {
             await _entryService.RemoveEntry(entryId);
             return Ok(new { message = "Entry removed." });
         }
+
+        // ✅ Leaderboard (based on joined contests)
         [HttpGet("/api/leaderboard")]
         public async Task<IActionResult> GetLeaderboard()
         {
@@ -89,19 +101,8 @@ namespace CRICXI.Controllers
                 });
             }
 
-            // Optional: Sort by most active
             leaderboard = leaderboard.OrderByDescending(x => x.JoinedContests).ToList();
-
             return Ok(leaderboard);
         }
-
-    }
-
-    public class JoinRequest
-    {
-        public string Username { get; set; }
-        public string MatchId { get; set; }
-        public string ContestId { get; set; }
-        public string TeamId { get; set; }
     }
 }

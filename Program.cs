@@ -62,7 +62,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // 🔧 Your frontend React dev server URL
+        policy.WithOrigins("http://localhost:5173",
+            "https://cricxi.vercel.app") 
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

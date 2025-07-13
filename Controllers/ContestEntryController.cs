@@ -11,20 +11,26 @@ namespace CRICXI.Controllers
         private readonly ContestEntryService _entryService;
         private readonly ContestService _contestService;
         private readonly UserService _userService;
+        private readonly FantasyTeamService _teamService;
 
-        public ContestEntryController(ContestEntryService entryService, ContestService contestService, UserService userService)
+        public ContestEntryController(
+            ContestEntryService entryService,
+            ContestService contestService,
+            UserService userService,
+            FantasyTeamService teamService)
         {
             _entryService = entryService;
             _contestService = contestService;
             _userService = userService;
+            _teamService = teamService;
         }
 
-        // ✅ Join a contest
+        // ✅ Join a contest with team–match validation
         [HttpPost("join")]
         public async Task<IActionResult> JoinContest([FromBody] ContestEntry entry)
         {
-            if (entry == null)
-                return BadRequest("Entry is null");
+            if (entry == null || string.IsNullOrWhiteSpace(entry.TeamId))
+                return BadRequest("Invalid entry data.");
 
             var contest = await _contestService.GetById(entry.ContestId);
             if (contest == null)
@@ -39,12 +45,21 @@ namespace CRICXI.Controllers
                 return BadRequest("Contest is full");
 
             var user = await _userService.GetByUsername(entry.Username);
-            if (user == null)
+            if (user == null || string.IsNullOrEmpty(user.Id))
                 return NotFound("User not found");
 
             if (user.WalletBalance < contest.EntryFee)
                 return BadRequest("Insufficient wallet balance");
 
+            // Fetch the team and validate match ID
+            var team = await _teamService.GetByIdAsync(entry.TeamId);
+            if (team == null)
+                return BadRequest("Fantasy team not found.");
+
+            if (team.MatchId != contest.MatchId)
+                return BadRequest("You cannot join this contest with a team from a different match.");
+
+            // Deduct balance and join
             var success = await _userService.UpdateWallet(user.Id, contest.EntryFee, addFunds: false);
             if (!success)
                 return BadRequest("Failed to deduct balance");
@@ -52,6 +67,12 @@ namespace CRICXI.Controllers
             await _entryService.Add(entry);
             return Ok("Joined successfully");
         }
+
+
+
+
+
+
 
         // ✅ Get all entries for a contest
         [HttpGet("by-contest/{contestId}")]
@@ -101,7 +122,13 @@ namespace CRICXI.Controllers
                 });
             }
 
-            leaderboard = leaderboard.OrderByDescending(x => x.JoinedContests).ToList();
+            leaderboard = leaderboard
+                .OrderByDescending(x => x.JoinedContests)
+                .Select((entry, index) => {
+                    entry.Rank = index + 1;
+                    return entry;
+                }).ToList();
+
             return Ok(leaderboard);
         }
     }

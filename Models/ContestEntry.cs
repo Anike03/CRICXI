@@ -7,12 +7,13 @@ namespace CRICXI.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
-
-        public string ContestId { get; set; }
-        public string MatchId { get; set; }
-        public string Username { get; set; } // Who joined
-        public string TeamId { get; set; }   // Their selected FantasyTeam Id
+        public string Id { get; set; } = null!;
+        public string ContestId { get; set; } = null!;
+        public string MatchId { get; set; } = null!;
+        public string Username { get; set; } = null!;
+        public string TeamId { get; set; } = null!;
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+        public int Score { get; set; } = 0;
+
     }
 }

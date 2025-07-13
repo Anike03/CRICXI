@@ -14,6 +14,11 @@ public class FantasyTeamService
         _teams = database.GetCollection<FantasyTeam>("FantasyTeams");
     }
 
+    public async Task<FantasyTeam> GetByIdAsync(string id)
+    {
+        return await _teams.Find(t => t.Id == id).FirstOrDefaultAsync();
+    }
+
     public async Task<List<FantasyTeam>> GetByUserAndMatch(string username, string matchId)
     {
         return await _teams.Find(t => t.Username == username && t.MatchId == matchId).ToListAsync();

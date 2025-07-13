@@ -1,7 +1,8 @@
-﻿using CRICXI.Models;
+﻿using CRICXI.Hubs;
+using CRICXI.Models;
 using CRICXI.Services;
-using MongoDB.Driver;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,7 @@ builder.Services.AddScoped<ContestService>();
 builder.Services.AddScoped<ScoringService>();
 builder.Services.AddScoped<LeaderboardService>();
 //builder.Services.AddScoped<FantasyTeamService>();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<CricbuzzApiService>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<ContestEntryService>();
@@ -92,7 +94,7 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapHub<ContestHub>("/contestHub");
 
 // 🔧 Map both API routes & optional Razor MVC
 app.MapControllers();

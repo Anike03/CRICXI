@@ -41,7 +41,7 @@ namespace CRICXI.Controllers
                 {
                     id = c.Id,
                     name = c.Name,
-                    matchId = c.MatchId,
+                    matchId = c.CricbuzzMatchId, // ✅ use CricbuzzMatchId for frontend
                     teamA = c.TeamA,
                     teamB = c.TeamB,
                     entryFee = c.EntryFee,
@@ -55,7 +55,6 @@ namespace CRICXI.Controllers
             return Ok(enriched);
         }
 
-        // ✅ API: Contests by match
         [HttpGet]
         [Route("api/contests/by-match/{matchId}")]
         public async Task<IActionResult> GetContestsByMatch(string matchId)
@@ -70,7 +69,7 @@ namespace CRICXI.Controllers
                 {
                     id = c.Id,
                     name = c.Name,
-                    matchId = c.MatchId,
+                    matchId = c.CricbuzzMatchId, // ✅ use CricbuzzMatchId for frontend
                     teamA = c.TeamA,
                     teamB = c.TeamB,
                     entryFee = c.EntryFee,
@@ -83,6 +82,11 @@ namespace CRICXI.Controllers
 
             return Ok(enriched);
         }
+
+
+
+
+
 
         // ✅ Admin Razor view
         public async Task<IActionResult> Index()
@@ -113,17 +117,20 @@ namespace CRICXI.Controllers
         public async Task<IActionResult> Create(Contest contest)
         {
             if (!IsAdmin()) return Unauthorized();
+
             var match = await _matchService.GetById(contest.MatchId);
             if (match != null)
             {
                 contest.TeamA = match.TeamA;
                 contest.TeamB = match.TeamB;
                 contest.StartDate = match.StartDate;
+                contest.CricbuzzMatchId = match.CricbuzzMatchId; // ✅ set external match ID
             }
 
             await _contestService.Create(contest);
             return RedirectToAction("AdminContests");
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Details(string id)

@@ -29,11 +29,12 @@ namespace CRICXI.Services
         public async Task<List<Contest>> GetUpcomingByMatchId(string matchId)
         {
             return await _contests.Find(c =>
-                c.MatchId == matchId &&
+                c.CricbuzzMatchId == matchId &&                    // ✅ Use external match ID
                 c.StartDate.HasValue &&
                 c.StartDate.Value > DateTime.UtcNow
             ).ToListAsync();
         }
+
 
     }
 

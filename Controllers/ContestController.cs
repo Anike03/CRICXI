@@ -70,7 +70,8 @@ namespace CRICXI.Controllers
                 {
                     id = c.Id,
                     name = c.Name,
-                    matchId = c.CricbuzzMatchId, // ✅ Send external ID
+                    cricbuzzMatchId = c.CricbuzzMatchId,   // ✅ External ID
+                    mongoMatchId = c.MatchId,              // ✅ Internal MongoDB ID
                     teamA = c.TeamA,
                     teamB = c.TeamB,
                     entryFee = c.EntryFee,
@@ -79,6 +80,7 @@ namespace CRICXI.Controllers
                     startDate = c.StartDate,
                     joined = joinedCount
                 });
+
             }
 
             return Ok(enriched);

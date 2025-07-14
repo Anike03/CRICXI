@@ -41,7 +41,7 @@ namespace CRICXI.Controllers
                 {
                     id = c.Id,
                     name = c.Name,
-                    matchId = c.CricbuzzMatchId, // ✅ use CricbuzzMatchId for frontend
+                    matchId = c.CricbuzzMatchId, // ✅ Send external ID
                     teamA = c.TeamA,
                     teamB = c.TeamB,
                     entryFee = c.EntryFee,
@@ -55,6 +55,7 @@ namespace CRICXI.Controllers
             return Ok(enriched);
         }
 
+        // ✅ API: Get contests by Cricbuzz Match ID
         [HttpGet]
         [Route("api/contests/by-match/{matchId}")]
         public async Task<IActionResult> GetContestsByMatch(string matchId)
@@ -69,7 +70,7 @@ namespace CRICXI.Controllers
                 {
                     id = c.Id,
                     name = c.Name,
-                    matchId = c.CricbuzzMatchId, // ✅ use CricbuzzMatchId for frontend
+                    matchId = c.CricbuzzMatchId, // ✅ Send external ID
                     teamA = c.TeamA,
                     teamB = c.TeamB,
                     entryFee = c.EntryFee,
@@ -82,11 +83,6 @@ namespace CRICXI.Controllers
 
             return Ok(enriched);
         }
-
-
-
-
-
 
         // ✅ Admin Razor view
         public async Task<IActionResult> Index()
@@ -124,13 +120,15 @@ namespace CRICXI.Controllers
                 contest.TeamA = match.TeamA;
                 contest.TeamB = match.TeamB;
                 contest.StartDate = match.StartDate;
-                contest.CricbuzzMatchId = match.CricbuzzMatchId; // ✅ set external match ID
+
+                // ✅ Store both IDs
+                contest.CricbuzzMatchId = match.CricbuzzMatchId;
+                contest.MatchId = match.Id; // MongoDB internal ID
             }
 
             await _contestService.Create(contest);
             return RedirectToAction("AdminContests");
         }
-
 
         [HttpGet]
         public async Task<IActionResult> Details(string id)
@@ -165,7 +163,7 @@ namespace CRICXI.Controllers
             return RedirectToAction("Index");
         }
 
-        // ✅ Join contest view (renders form)
+        // ✅ Join contest view
         [HttpGet]
         public async Task<IActionResult> Join(string contestId)
         {
@@ -187,7 +185,7 @@ namespace CRICXI.Controllers
             return View();
         }
 
-        // ✅ Submit join contest
+        // ✅ Submit join
         [HttpPost]
         public async Task<IActionResult> Join(string contestId, string teamId)
         {

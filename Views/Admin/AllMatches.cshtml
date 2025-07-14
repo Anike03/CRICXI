@@ -315,6 +315,7 @@
                             <td>
                                 <span class="match-status @statusClass">@statusText</span>
                             </td>
+                            <!-- Update the action buttons section -->
                             <td>
                                 <div class="action-buttons">
                                     <a asp-action="CreateContest" asp-route-matchId="@match.Id"
@@ -323,8 +324,12 @@
                                     </a>
                                     <a asp-controller="Match" asp-action="Squads" asp-route-matchId="@match.CricbuzzMatchId"
                                        class="btn btn-squads btn-sm">
-                                        <i class="fas fa-users"></i> Squads
+                                        <i class="fas fa-users"></i> Match Squads
                                     </a>
+                                    @* <a asp-controller="Admin" asp-action="SeriesSquads" asp-route-seriesId="@match.SeriesId"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-list"></i> Series Squads
+                                    </a> *@
                                     <a asp-controller="Match" asp-action="Info" asp-route-matchId="@match.CricbuzzMatchId"
                                        class="btn btn-info btn-sm">
                                         <i class="fas fa-info-circle"></i> Info

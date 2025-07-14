@@ -39,4 +39,44 @@ public class FantasyTeamService
         var count = await _teams.CountDocumentsAsync(t => t.Username == username && t.MatchId == matchId);
         return count < 3;
     }
+    public async Task<List<TeamSquad>> GetSquadsByMatch(string matchId)
+    {
+        var teams = await _teams.Find(t => t.MatchId == matchId).ToListAsync();
+
+        var teamMap = new Dictionary<string, List<SquadPlayer>>();
+
+        foreach (var team in teams)
+        {
+            foreach (var player in team.Players)
+            {
+                var teamName = player.Team ?? "Unknown";
+
+                if (!teamMap.ContainsKey(teamName))
+                    teamMap[teamName] = new List<SquadPlayer>();
+
+                if (!teamMap[teamName].Any(p => p.Name == player.Name))
+                {
+                    teamMap[teamName].Add(new SquadPlayer
+                    {
+                        Name = player.Name,
+                        Role = player.Role
+                    });
+                }
+            }
+        }
+
+        var result = new List<TeamSquad>();
+        foreach (var (teamName, players) in teamMap)
+        {
+            result.Add(new TeamSquad
+            {
+                TeamName = teamName,
+                Players = players
+            });
+        }
+
+        return result;
+    }
+
+
 }

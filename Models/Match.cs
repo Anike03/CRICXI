@@ -19,6 +19,7 @@ namespace CRICXI.Models
         public DateTime StartDate { get; set; }
         public string? Venue { get; set; }
         public string? Status { get; set; }
+        public int SeriesId { get; set; }
 
         // Toronto time display properties
         [BsonIgnore]

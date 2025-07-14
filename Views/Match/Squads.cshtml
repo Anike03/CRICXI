@@ -68,7 +68,14 @@
 </style>
 
 <div class="container overlay">
-    <h2>🧢 Match Squads</h2>
+    <h2>
+        🧢 @(
+        ViewBag.IsSeriesSquad != null && (bool)ViewBag.IsSeriesSquad
+        ? "Series Squads (Fallback)"
+        : "Match Squads"
+                )
+    </h2>
+
 
     @if (Model == null || Model.Count == 0 || Model.All(t => t.Players.Count == 0))
     {
@@ -81,7 +88,15 @@
         foreach (var team in Model)
         {
             <div class="team-squad">
-                <h4>@team.TeamName</h4>
+                <h4>
+                    @team.TeamName
+                    @if (ViewBag.IsSeriesSquad is bool isSeries && isSeries)
+                    {
+                        <span class="badge bg-warning text-dark ms-2">Series</span>
+                    }
+                </h4>
+
+
                 <table class="squad-table">
                     <thead>
                         <tr>

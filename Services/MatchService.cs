@@ -11,7 +11,12 @@ namespace CRICXI.Services
         {
             _matches = db.GetCollection<Match>("Matches");
         }
-
+        public async Task<List<Match>> GetBySeries(int seriesId)
+        {
+            // Implement this based on your data storage
+            // Example for MongoDB:
+            return await _matches.Find(m => m.SeriesId == seriesId).ToListAsync();
+        }
         public async Task<List<Match>> GetAll() =>
             await _matches.Find(_ => true).ToListAsync();
 

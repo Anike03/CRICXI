@@ -84,6 +84,16 @@ namespace CRICXI.Controllers
                         {
                             foreach (var series in seriesMatches.EnumerateArray())
                             {
+                                // Extract series ID
+                                int seriesId = 0;
+                                if (series.TryGetProperty("seriesAdWrapper", out var seriesWrapper))
+                                {
+                                    if (seriesWrapper.TryGetProperty("seriesId", out var seriesIdProp))
+                                    {
+                                        seriesId = seriesIdProp.GetInt32();
+                                    }
+                                }
+
                                 if (series.TryGetProperty("seriesAdWrapper", out var wrapper) &&
                                     wrapper.TryGetProperty("matches", out var matchArray))
                                 {
@@ -96,7 +106,6 @@ namespace CRICXI.Controllers
                                             var matchDesc = matchInfo.GetProperty("matchDesc").GetString() ?? "";
                                             var cricbuzzMatchId = matchInfo.GetProperty("matchId").ToString();
 
-                                            // Enhanced venue extraction
                                             string venue = "Unknown Venue";
                                             if (matchInfo.TryGetProperty("venueInfo", out var venueInfo))
                                             {
@@ -122,7 +131,8 @@ namespace CRICXI.Controllers
                                                 MatchDesc = matchDesc,
                                                 Venue = venue,
                                                 StartDate = startDate,
-                                                Status = "Upcoming"
+                                                Status = "Upcoming",
+                                                SeriesId = seriesId // Store the series ID
                                             };
 
                                             await _matchService.SaveIfNotExists(match);

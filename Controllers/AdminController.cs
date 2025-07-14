@@ -177,12 +177,18 @@ namespace CRICXI.Controllers
                 contest.TeamA = match.TeamA;
                 contest.TeamB = match.TeamB;
                 contest.StartDate = match.StartDate;
-                //contest.Venue = match.Venue;
+
+                // ✅ Add this to store Cricbuzz Match ID
+                contest.CricbuzzMatchId = match.CricbuzzMatchId;
+
+                // (Optional) set venue if needed
+                // contest.Venue = match.Venue;
             }
 
             await _contestService.Create(contest);
             return RedirectToAction("AllContests");
         }
+
 
         // USERS MANAGEMENT
         [HttpGet]

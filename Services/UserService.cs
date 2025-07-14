@@ -142,5 +142,10 @@ namespace CRICXI.Services
             user.IsBannedUntil = null;
             await Update(user);
         }
+        public async Task<User> GetByUid(string uid)
+        {
+            return await _users.Find(u => u.FirebaseUid == uid).FirstOrDefaultAsync();
+        }
+
     }
 }

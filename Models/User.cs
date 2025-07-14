@@ -5,16 +5,18 @@ namespace CRICXI.Models
 {
     public class User
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id { get; set; }
-        public string? Username { get; set; }
-        public string? Email { get; set; }
-        public string? PasswordHash { get; set; }
-        public string Role { get; set; } = "User";
+        public string Id { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
         public decimal WalletBalance { get; set; } = 0;
+        public string Role { get; set; } = "User";
         public DateTime? IsBannedUntil { get; set; }
-        public bool IsEmailConfirmed { get; set; } = false;
 
+        // ✅ Add this line for Firebase integration
+        public string FirebaseUid { get; set; } = string.Empty;
+
+        public bool IsEmailConfirmed { get; set; } = true;
     }
+
 }

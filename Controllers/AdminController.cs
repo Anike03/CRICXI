@@ -434,6 +434,17 @@ namespace CRICXI.Controllers
 
             return View(leaderboard);
         }
+        [HttpGet("/api/users/{uid}/balance")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserBalanceByUid(string uid)
+        {
+            var user = await _userService.GetByUid(uid);
+            if (user == null)
+                return NotFound("User not found");
+
+            return Ok(new { balance = user.WalletBalance });
+        }
+
 
     }
 }

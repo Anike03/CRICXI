@@ -232,5 +232,16 @@ namespace CRICXI.Controllers
         {
             return HttpContext.Session.GetString("Role") == "Admin";
         }
+        [HttpGet]
+        [Route("api/contests/{id}")]
+        public async Task<IActionResult> GetContestById(string id)
+        {
+            var contest = await _contestService.GetById(id);
+            if (contest == null)
+                return NotFound();
+
+            return Ok(contest);
+        }
+
     }
 }

@@ -2,8 +2,8 @@
 using CRICXI.Models;
 using CRICXI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using MongoDB.Driver;
 using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,28 +34,29 @@ builder.Services.AddScoped<ContestEntryService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<CricketNewsService>();
 builder.Services.AddScoped<LeaderboardService>();
+builder.Services.AddSingleton<FantasyTeamService>();
+
 builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("MongoDBSettings")
 );
-builder.Services.AddSingleton<FantasyTeamService>();
 
-// 🔧 Add HttpClientFactory services
+// 🔧 Add HttpClientFactory
 builder.Services.AddHttpClient();
 
-// 🔧 Add controllers + session
+// 🔧 MVC + Session + SignalR
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
 builder.Services.AddSignalR();
 
-// 🔧 Authentication (cookie-based for admin)
+// 🔧 Cookie authentication (for Admin)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddCookie();
 
-// 🔧 Setup CORS to allow frontend React (Vite) connection
+// 🔧 CORS for React frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
@@ -84,8 +85,7 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// ✅ CORS middleware MUST come BEFORE UseRouting
-app.UseCors("AllowReact");
+app.UseCors("AllowReact"); // ✅ must be before UseRouting
 
 app.UseRouting();
 app.UseSession();
@@ -94,7 +94,6 @@ app.UseAuthorization();
 
 app.MapHub<ContestHub>("/contestHub");
 
-// 🔧 Map both API routes & Razor MVC
 app.MapControllers();
 
 app.MapControllerRoute(

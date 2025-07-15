@@ -458,11 +458,11 @@ namespace CRICXI.Controllers
             var origin = Request.Headers["Origin"].ToString();
             if (!string.IsNullOrEmpty(origin))
             {
-                Response.Headers.Add("Access-Control-Allow-Origin", origin);
-                Response.Headers.Add("Vary", "Origin");
+                Response.Headers["Access-Control-Allow-Origin"] = origin;
+                Response.Headers["Vary"] = "Origin";
             }
 
-            Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+            Response.Headers["Access-Control-Allow-Credentials"] = "true";
 
             var user = await _userService.GetByUid(uid);
             if (user == null)
@@ -470,6 +470,7 @@ namespace CRICXI.Controllers
 
             return Ok(new { balance = user.WalletBalance });
         }
+
 
 
 
@@ -487,6 +488,18 @@ namespace CRICXI.Controllers
 
             return Ok(user);
         }
+        [HttpGet("/api/users/{uid}/teams")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserTeamsByMatch(string uid, [FromQuery] string matchId)
+        {
+            var user = await _userService.GetByUid(uid);
+            if (user == null)
+                return NotFound("User not found");
+
+            var teams = await _teamService.GetByUserAndMatch(user.Username, matchId);
+            return Ok(teams);
+        }
+
 
     }
 }

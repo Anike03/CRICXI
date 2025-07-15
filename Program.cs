@@ -3,6 +3,7 @@ using CRICXI.Models;
 using CRICXI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MongoDB.Driver;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,12 +25,9 @@ builder.Services.AddScoped(serviceProvider =>
 
 // 🔧 Register services
 builder.Services.AddScoped<UserService>();
-//builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ContestService>();
 builder.Services.AddScoped<ScoringService>();
 builder.Services.AddScoped<LeaderboardService>();
-//builder.Services.AddScoped<FantasyTeamService>();
-builder.Services.AddSignalR();
 builder.Services.AddScoped<CricbuzzApiService>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<ContestEntryService>();
@@ -39,20 +37,18 @@ builder.Services.AddScoped<LeaderboardService>();
 builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("MongoDBSettings")
 );
-
 builder.Services.AddSingleton<FantasyTeamService>();
 
-
-
 // 🔧 Add HttpClientFactory services
-builder.Services.AddHttpClient();  // 👈 Add this line to register IHttpClientFactory
+builder.Services.AddHttpClient();
 
 // 🔧 Add controllers + session
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
+builder.Services.AddSignalR();
 
-// 🔧 Authentication basic (Cookie based only for Admin login right now)
+// 🔧 Authentication (cookie-based for admin)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -64,8 +60,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173",
-            "https://cricxi.vercel.app") 
+        policy.WithOrigins("http://localhost:5173", "https://cricxi.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -86,17 +81,20 @@ else
 }
 
 // 🔧 HTTP pipeline
-// 🔧 HTTP pipeline
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// ✅ CORS middleware MUST come BEFORE UseRouting
 app.UseCors("AllowReact");
+
 app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapHub<ContestHub>("/contestHub");
 
-// 🔧 Map both API routes & optional Razor MVC
+// 🔧 Map both API routes & Razor MVC
 app.MapControllers();
 
 app.MapControllerRoute(

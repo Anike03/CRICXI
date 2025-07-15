@@ -144,7 +144,16 @@ namespace CRICXI.Services
         }
         public async Task<User> GetByUid(string uid)
         {
-            return await _users.Find(u => u.FirebaseUid == uid).FirstOrDefaultAsync();
+            // Try finding by Firebase UID first
+            var user = await _users.Find(u => u.FirebaseUid == uid).FirstOrDefaultAsync();
+
+            // If not found, try finding by regular ID
+            if (user == null)
+            {
+                user = await _users.Find(u => u.Id == uid).FirstOrDefaultAsync();
+            }
+
+            return user;
         }
 
 

@@ -21,9 +21,13 @@ namespace CRICXI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
+            Console.WriteLine($"Received UID: {uid}"); // Check your server logs
             var user = await _userService.GetByUid(uid);
             if (user == null)
+            {
+                Console.WriteLine("No user found with this UID"); // Additional logging
                 return NotFound("User not found");
+            }
 
             return Ok(new { balance = user.WalletBalance, from = "UserController" });
         }

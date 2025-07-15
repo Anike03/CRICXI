@@ -121,7 +121,12 @@ namespace CRICXI.Controllers
                                                 }
                                             }
 
+                                            // Change the SyncMatches method to handle null startDate:
                                             var startMillis = matchInfo.GetProperty("startDate").GetString();
+                                            if (string.IsNullOrEmpty(startMillis))
+                                            {
+                                                continue; // Skip invalid matches
+                                            }
                                             var startDate = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(startMillis)).DateTime;
 
                                             var match = new Match
@@ -362,16 +367,26 @@ namespace CRICXI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SyncFirebaseUser([FromBody] FirebaseUserDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Email)) return BadRequest("Email required.");
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return BadRequest("Email required.");
 
             var existing = await _userService.GetByEmail(dto.Email);
             if (existing != null)
+            {
+                // Make sure to use dto.Uid (not dto.FirebaseUid)
+                if (string.IsNullOrEmpty(existing.FirebaseUid) && !string.IsNullOrEmpty(dto.Uid))
+                {
+                    existing.FirebaseUid = dto.Uid;
+                    await _userService.Update(existing);
+                }
                 return Ok(existing);
+            }
 
             var newUser = new User
             {
                 Username = dto.Username ?? dto.Email.Split('@')[0],
                 Email = dto.Email,
+                FirebaseUid = dto.Uid,
                 WalletBalance = 1000,
                 IsEmailConfirmed = true,
                 Role = "User",
@@ -379,7 +394,6 @@ namespace CRICXI.Controllers
             };
 
             await _userService.RegisterWithoutPassword(newUser);
-
             return Ok(newUser);
         }
 
@@ -435,12 +449,19 @@ namespace CRICXI.Controllers
 
             return View(leaderboard);
         }
+
         [HttpGet("/api/users/{uid}/balance")]
         [AllowAnonymous]
-        [EnableCors("AllowReact")] // Explicitly enable CORS
+        [EnableCors("AllowReact")]
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:5173");
+            var origin = Request.Headers["Origin"].ToString();
+            if (!string.IsNullOrEmpty(origin))
+            {
+                Response.Headers.Add("Access-Control-Allow-Origin", origin);
+                Response.Headers.Add("Vary", "Origin");
+            }
+
             Response.Headers.Add("Access-Control-Allow-Credentials", "true");
 
             var user = await _userService.GetByUid(uid);
@@ -448,6 +469,23 @@ namespace CRICXI.Controllers
                 return NotFound("User not found");
 
             return Ok(new { balance = user.WalletBalance });
+        }
+
+
+
+
+
+        [HttpPost("/api/users/sync-uid")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SyncFirebaseUid([FromBody] FirebaseUidSyncDto dto)
+        {
+            var user = await _userService.GetByEmail(dto.Email);
+            if (user == null) return NotFound("User not found");
+
+            user.FirebaseUid = dto.FirebaseUid;
+            await _userService.Update(user);
+
+            return Ok(user);
         }
 
     }

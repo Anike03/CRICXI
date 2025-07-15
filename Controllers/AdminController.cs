@@ -437,9 +437,12 @@ namespace CRICXI.Controllers
         }
         [HttpGet("/api/users/{uid}/balance")]
         [AllowAnonymous]
-        [EnableCors("AllowReact")] // Just add this to the specific endpoint
+        [EnableCors("AllowReact")] // Explicitly enable CORS
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
+            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:5173");
+            Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+
             var user = await _userService.GetByUid(uid);
             if (user == null)
                 return NotFound("User not found");

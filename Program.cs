@@ -56,7 +56,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie();
 
-// 🔧 CORS for React frontend
+// 🔧 Enhanced CORS configuration
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
@@ -64,7 +64,16 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173", "https://cricxi.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
+    });
+
+    // Fallback policy for all other requests
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -82,10 +91,37 @@ else
 }
 
 // 🔧 HTTP pipeline
+
+// Handle OPTIONS requests first
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.Headers.Add("Access-Control-Allow-Origin", context.Request.Headers["Origin"]);
+        context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        context.Response.StatusCode = 200;
+        await context.Response.CompleteAsync();
+        return;
+    }
+    await next();
+});
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseCors("AllowReact"); // ✅ must be before UseRouting
+// Apply CORS middleware
+app.UseCors("AllowReact");
+
+// Add security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("Referrer-Policy", "no-referrer");
+    await next();
+});
 
 app.UseRouting();
 app.UseSession();

@@ -1,6 +1,7 @@
 ﻿using CRICXI.Models;
 using CRICXI.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -436,6 +437,7 @@ namespace CRICXI.Controllers
         }
         [HttpGet("/api/users/{uid}/balance")]
         [AllowAnonymous]
+        [EnableCors("AllowReact")] // Just add this to the specific endpoint
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
             var user = await _userService.GetByUid(uid);
@@ -444,7 +446,6 @@ namespace CRICXI.Controllers
 
             return Ok(new { balance = user.WalletBalance });
         }
-
 
     }
 }

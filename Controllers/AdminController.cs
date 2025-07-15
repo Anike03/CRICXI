@@ -456,7 +456,9 @@ namespace CRICXI.Controllers
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
             var origin = Request.Headers["Origin"].ToString();
-            if (!string.IsNullOrEmpty(origin))
+
+            if (!string.IsNullOrEmpty(origin) &&
+                (origin == "https://cricxi.vercel.app" || origin == "http://localhost:5173"))
             {
                 Response.Headers["Access-Control-Allow-Origin"] = origin;
                 Response.Headers["Vary"] = "Origin";
@@ -470,6 +472,7 @@ namespace CRICXI.Controllers
 
             return Ok(new { balance = user.WalletBalance });
         }
+
 
 
 

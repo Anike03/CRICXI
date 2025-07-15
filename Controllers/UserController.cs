@@ -25,7 +25,7 @@ namespace CRICXI.Controllers
             if (user == null)
                 return NotFound("User not found");
 
-            return Ok(new { balance = user.WalletBalance });
+            return Ok(new { balance = user.WalletBalance, from = "UserController" });
         }
     }
 }

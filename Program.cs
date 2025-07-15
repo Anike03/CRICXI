@@ -64,9 +64,9 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173", "https://cricxi.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
-              .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
+              .AllowCredentials();
     });
+
 
     // Fallback policy for all other requests
     options.AddDefaultPolicy(policy =>

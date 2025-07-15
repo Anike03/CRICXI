@@ -449,29 +449,18 @@ namespace CRICXI.Controllers
 
             return View(leaderboard);
         }
-
         [HttpGet("/api/users/{uid}/balance")]
         [AllowAnonymous]
         [EnableCors("AllowReact")]
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
-            var origin = Request.Headers["Origin"].ToString();
-
-            if (!string.IsNullOrEmpty(origin) &&
-                (origin == "https://cricxi.vercel.app" || origin == "http://localhost:5173"))
-            {
-                Response.Headers["Access-Control-Allow-Origin"] = origin;
-                Response.Headers["Vary"] = "Origin";
-            }
-
-            Response.Headers["Access-Control-Allow-Credentials"] = "true";
-
             var user = await _userService.GetByUid(uid);
             if (user == null)
                 return NotFound("User not found");
 
             return Ok(new { balance = user.WalletBalance });
         }
+
 
 
 

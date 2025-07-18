@@ -61,12 +61,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins("https://cricxi.vercel.app", "http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.WithOrigins(
+            "https://cricxi.vercel.app",  // Vercel production URL
+            "http://localhost:5173"       // Local development
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
-
 
     // Fallback policy for all other requests
     options.AddDefaultPolicy(policy =>
@@ -111,7 +113,7 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Apply CORS middleware
+// Apply CORS middleware once before routing
 app.UseCors("AllowReact");
 
 // Add security headers
@@ -123,14 +125,12 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseCors("AllowReact");
 app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHub<ContestHub>("/contestHub");
-
 app.MapControllers();
 
 app.MapControllerRoute(

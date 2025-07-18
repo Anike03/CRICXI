@@ -123,8 +123,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseRouting();
 app.UseCors("AllowReact");
+app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();

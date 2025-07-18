@@ -21,40 +21,62 @@ namespace CRICXI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetUserBalanceByUid(string uid)
         {
-            Console.WriteLine($"Received UID: {uid}");
-            var user = await _userService.GetByUid(uid);
-            if (user == null)
-                return NotFound("User not found");
+            try
+            {
+                var user = await _userService.GetByUid(uid);
 
-            return Ok(new { balance = user.WalletBalance, from = "UserController" });
+                // Fallback to email check if UID isn't found
+                if (user == null && !string.IsNullOrEmpty(HttpContext.Request.Query["email"]))
+                {
+                    user = await _userService.GetByEmail(HttpContext.Request.Query["email"]);
+                }
+
+                if (user == null)
+                    return NotFound("User not found");
+
+                return Ok(new { balance = user.WalletBalance });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching balance: {ex.Message}");
+                return StatusCode(500, "Internal server error while fetching user balance");
+            }
         }
 
         [HttpPost("deduct-balance")]
         public async Task<IActionResult> DeductBalance([FromBody] DeductBalanceRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.UserId))
-                return BadRequest("User ID required");
-
-            if (request.Amount <= 0)
-                return BadRequest("Amount must be positive");
-
-            var (success, _) = await _userService.DeductBalance(
-                request.UserId,
-                request.Amount,
-                request.Description ?? "Contest entry fee");
-
-            if (!success)
-                return BadRequest("Failed to deduct balance - insufficient funds or user not found");
-
-            var updatedUser = await _userService.GetById(request.UserId);
-            if (updatedUser == null)
-                return NotFound("User not found after update");
-
-            return Ok(new
+            try
             {
-                success = true,
-                newBalance = updatedUser.WalletBalance
-            });
+                if (string.IsNullOrWhiteSpace(request.UserId))
+                    return BadRequest("User ID required");
+
+                if (request.Amount <= 0)
+                    return BadRequest("Amount must be positive");
+
+                var (success, _) = await _userService.DeductBalance(
+                    request.UserId,
+                    request.Amount,
+                    request.Description ?? "Contest entry fee");
+
+                if (!success)
+                    return BadRequest("Failed to deduct balance - insufficient funds or user not found");
+
+                var updatedUser = await _userService.GetById(request.UserId);
+                if (updatedUser == null)
+                    return NotFound("User not found after update");
+
+                return Ok(new
+                {
+                    success = true,
+                    newBalance = updatedUser.WalletBalance
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Deduct balance error: {ex.Message}");
+                return StatusCode(500, "Internal server error during balance deduction");
+            }
         }
 
         public class DeductBalanceRequest

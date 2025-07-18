@@ -11,40 +11,55 @@ namespace CRICXI.Controllers
         private readonly ContestEntryService _entryService;
         private readonly ContestService _contestService;
         private readonly UserService _userService;
+        private readonly FantasyTeamService _teamService;
 
         public ContestEntryController(
             ContestEntryService entryService,
             ContestService contestService,
-            UserService userService)
+            UserService userService,
+            FantasyTeamService teamService)
         {
             _entryService = entryService;
             _contestService = contestService;
             _userService = userService;
+            _teamService = teamService;
         }
 
-        // ✅ Join a contest using Firebase UID
+        // ✅ Join a contest with Firebase UID and wallet check
         [HttpPost("join")]
         public async Task<IActionResult> JoinContest([FromBody] ContestEntryRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.TeamId))
                 return BadRequest(new { success = false, message = "Invalid join request." });
 
-            // Fetch contest
             var contest = await _contestService.GetById(request.ContestId);
             if (contest == null)
                 return NotFound(new { success = false, message = "Contest not found." });
 
-            // Fetch user via Firebase UID
             var user = await _userService.GetByUid(request.UserId);
+            if (user == null && !string.IsNullOrEmpty(request.UserEmail))
+            {
+                user = await _userService.GetByEmail(request.UserEmail);
+                if (user != null && string.IsNullOrEmpty(user.FirebaseUid))
+                {
+                    user.FirebaseUid = request.UserId;
+                    await _userService.Update(user);
+                }
+            }
+
             if (user == null)
                 return NotFound(new { success = false, message = "User not found." });
 
-            // Check if already joined
-            var alreadyJoined = await _entryService.HasUserJoined(request.ContestId, user.Username);
-            if (alreadyJoined)
+            // Check if user already joined
+            if (await _entryService.HasUserJoined(request.ContestId, user.Username))
                 return BadRequest(new { success = false, message = "User already joined this contest." });
 
-            // Check wallet balance
+            // Validate fantasy team
+            var team = await _teamService.GetByIdAsync(request.TeamId);
+            if (team == null || team.MatchId != contest.MatchId)
+                return BadRequest(new { success = false, message = "Invalid team for this match." });
+
+            // Wallet balance check
             if (user.WalletBalance < contest.EntryFee)
                 return BadRequest(new
                 {
@@ -53,17 +68,17 @@ namespace CRICXI.Controllers
                     currentBalance = user.WalletBalance
                 });
 
-            // Deduct wallet balance
+            // Deduct balance
             var success = await _userService.UpdateWallet(user.Id, contest.EntryFee, addFunds: false);
             if (!success)
                 return BadRequest(new { success = false, message = "Failed to deduct balance." });
 
-            // Add entry (TeamId is Firebase team ID)
+            // Add contest entry
             var entry = new ContestEntry
             {
                 ContestId = contest.Id,
                 MatchId = contest.MatchId,
-                Username = user.Username, // Username from MongoDB
+                Username = user.Username,
                 TeamId = request.TeamId,
                 JoinedAt = DateTime.UtcNow,
                 Score = 0
@@ -74,15 +89,8 @@ namespace CRICXI.Controllers
             {
                 success = true,
                 newBalance = user.WalletBalance - contest.EntryFee,
-                message = "Successfully joined contest"
+                message = "Successfully joined contest."
             });
-        }
-
-        public class ContestEntryRequest
-        {
-            public string ContestId { get; set; } = null!;
-            public string TeamId { get; set; } = null!;
-            public string UserId { get; set; } = null!; // Firebase UID
         }
 
         // ✅ Get all entries for a contest
@@ -115,7 +123,7 @@ namespace CRICXI.Controllers
             return Ok(new { message = "Entry removed." });
         }
 
-        // ✅ Leaderboard (based on joined contests)
+        // ✅ Leaderboard endpoint
         [HttpGet("/api/leaderboard")]
         public async Task<IActionResult> GetLeaderboard()
         {
@@ -142,6 +150,15 @@ namespace CRICXI.Controllers
                 }).ToList();
 
             return Ok(leaderboard);
+        }
+
+        // ✅ Request model
+        public class ContestEntryRequest
+        {
+            public string ContestId { get; set; } = null!;
+            public string TeamId { get; set; } = null!;
+            public string UserId { get; set; } = null!;
+            public string? UserEmail { get; set; }
         }
     }
 }

@@ -155,6 +155,30 @@ namespace CRICXI.Services
 
             return user;
         }
+        public async Task<(bool success, decimal newBalance)> DeductBalance(string userId, decimal amount, string description)
+        {
+            var user = await GetById(userId);
+            if (user == null) return (false, 0);
+
+            // Check sufficient balance
+            if (user.WalletBalance < amount)
+            {
+                return (false, user.WalletBalance);
+            }
+
+            // Deduct amount
+            user.WalletBalance -= amount;
+
+            // Record transaction
+            user.Transactions.Add(new Transaction
+            {
+                Amount = -amount,
+                Description = description
+            });
+
+            await Update(user);
+            return (true, user.WalletBalance);
+        }
 
 
     }

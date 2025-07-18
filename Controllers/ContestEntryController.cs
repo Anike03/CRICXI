@@ -27,45 +27,57 @@ namespace CRICXI.Controllers
 
         // ✅ Join a contest with team–match validation
         [HttpPost("join")]
-        public async Task<IActionResult> JoinContest([FromBody] ContestEntry entry)
+        public async Task<IActionResult> JoinContest([FromBody] ContestEntryRequest request)
         {
-            if (entry == null || string.IsNullOrWhiteSpace(entry.TeamId))
-                return BadRequest("Invalid entry data.");
+            var contest = await _contestService.GetById(request.ContestId);
+            if (contest == null) return NotFound("Contest not found");
 
-            var contest = await _contestService.GetById(entry.ContestId);
-            if (contest == null)
-                return NotFound("Contest not found");
+            var user = await _userService.GetByUsername(request.Username);
+            if (user == null) return NotFound("User not found");
 
-            var alreadyJoined = await _entryService.HasUserJoined(entry.ContestId, entry.Username);
-            if (alreadyJoined)
-                return BadRequest("User already joined this contest");
+            var team = await _teamService.GetByIdAsync(request.TeamId);
+            if (team == null) return BadRequest("Fantasy team not found");
 
-            var joinedCount = await _entryService.GetJoinedCount(entry.ContestId);
-            if (joinedCount >= contest.MaxParticipants)
-                return BadRequest("Contest is full");
+            // Deduct balance
+            var (success, newBalance) = await _userService.DeductBalance(
+                user.Id,
+                contest.EntryFee,
+                $"Contest entry: {contest.Name} (Team: {team.TeamName})");
 
-            var user = await _userService.GetByUsername(entry.Username);
-            if (user == null || string.IsNullOrEmpty(user.Id))
-                return NotFound("User not found");
-
-            if (user.WalletBalance < contest.EntryFee)
-                return BadRequest("Insufficient wallet balance");
-
-            // Fetch the team and validate match ID
-            var team = await _teamService.GetByIdAsync(entry.TeamId);
-            if (team == null)
-                return BadRequest("Fantasy team not found.");
-
-            if (team.MatchId != contest.MatchId)
-                return BadRequest("You cannot join this contest with a team from a different match.");
-
-            // Deduct balance and join
-            var success = await _userService.UpdateWallet(user.Id, contest.EntryFee, addFunds: false);
             if (!success)
-                return BadRequest("Failed to deduct balance");
+            {
+                return BadRequest(new
+                {
+                    message = "Insufficient balance",
+                    currentBalance = newBalance
+                });
+            }
+
+            // Create entry
+            var entry = new ContestEntry
+            {
+                ContestId = contest.Id,
+                MatchId = contest.MatchId,
+                Username = user.Username,
+                TeamId = team.Id,
+                EntryDate = DateTime.UtcNow
+            };
 
             await _entryService.Add(entry);
-            return Ok("Joined successfully");
+
+            return Ok(new
+            {
+                success = true,
+                newBalance,
+                message = "Successfully joined contest"
+            });
+        }
+
+        public class ContestEntryRequest
+        {
+            public string ContestId { get; set; }
+            public string TeamId { get; set; }
+            public string Username { get; set; }
         }
 
 

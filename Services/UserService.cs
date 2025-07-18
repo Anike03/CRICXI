@@ -1,10 +1,11 @@
-﻿using MongoDB.Driver;
-using CRICXI.Models;
+﻿using CRICXI.Models;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Driver;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CRICXI.Services
 {
@@ -144,16 +145,27 @@ namespace CRICXI.Services
         }
         public async Task<User> GetByUid(string uid)
         {
-            // Try finding by Firebase UID first
-            var user = await _users.Find(u => u.FirebaseUid == uid).FirstOrDefaultAsync();
+            if (string.IsNullOrWhiteSpace(uid))
+                return null;
 
-            // If not found, try finding by regular ID
-            if (user == null)
+            try
             {
-                user = await _users.Find(u => u.Id == uid).FirstOrDefaultAsync();
-            }
+                // First try Firebase UID
+                var user = await _users.Find(u => u.FirebaseUid == uid).FirstOrDefaultAsync();
 
-            return user;
+                // Then try MongoDB ID
+                if (user == null && ObjectId.TryParse(uid, out _))
+                {
+                    user = await _users.Find(u => u.Id == uid).FirstOrDefaultAsync();
+                }
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetByUid: {ex.Message}");
+                return null;
+            }
         }
         public async Task<(bool success, decimal newBalance)> DeductBalance(string userId, decimal amount, string description)
         {

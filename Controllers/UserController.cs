@@ -11,10 +11,12 @@ namespace CRICXI.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(UserService userService)
+        public UserController(UserService userService, ILogger<UserController> logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
         [HttpGet("{uid}/balance")]
@@ -25,21 +27,23 @@ namespace CRICXI.Controllers
             {
                 var user = await _userService.GetByUid(uid);
 
-                // Fallback to email check if UID isn't found
-                if (user == null && !string.IsNullOrEmpty(HttpContext.Request.Query["email"]))
-                {
-                    user = await _userService.GetByEmail(HttpContext.Request.Query["email"]);
-                }
-
                 if (user == null)
-                    return NotFound("User not found");
+                {
+                    if (!string.IsNullOrEmpty(HttpContext.Request.Query["email"]))
+                    {
+                        user = await _userService.GetByEmail(HttpContext.Request.Query["email"]);
+                    }
+
+                    if (user == null)
+                        return NotFound("User not found");
+                }
 
                 return Ok(new { balance = user.WalletBalance });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching balance: {ex.Message}");
-                return StatusCode(500, "Internal server error while fetching user balance");
+                _logger.LogError(ex, "Error fetching balance for UID: {Uid}", uid);
+                return StatusCode(500, "Internal server error");
             }
         }
 
@@ -74,7 +78,7 @@ namespace CRICXI.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Deduct balance error: {ex.Message}");
+                _logger.LogError(ex, "Error during balance deduction for UserId: {UserId}", request.UserId);
                 return StatusCode(500, "Internal server error during balance deduction");
             }
         }

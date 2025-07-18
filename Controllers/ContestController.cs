@@ -242,6 +242,57 @@ namespace CRICXI.Controllers
 
             return Ok(contest);
         }
+        // ✅ API: Join contest (for React frontend)
+        [HttpPost]
+        [Route("api/contests/join")]
+        public async Task<IActionResult> JoinContest([FromBody] JoinContestRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.TeamId))
+                return BadRequest(new { success = false, message = "Invalid join request." });
+
+            var contest = await _contestService.GetById(request.ContestId);
+            if (contest == null)
+                return NotFound(new { success = false, message = "Contest not found." });
+
+            var user = await _userService.GetByUid(request.UserId);
+            if (user == null)
+                return NotFound(new { success = false, message = "User not found." });
+
+            // Check wallet balance
+            if (user.WalletBalance < contest.EntryFee)
+                return BadRequest(new { success = false, message = "Insufficient wallet balance." });
+
+            // Check if user already joined
+            var alreadyJoined = await _entryService.HasUserJoined(contest.Id, user.Username);
+            if (alreadyJoined)
+                return BadRequest(new { success = false, message = "User already joined this contest." });
+
+            // Deduct balance
+            var success = await _userService.UpdateWallet(user.Id, contest.EntryFee, addFunds: false);
+            if (!success)
+                return BadRequest(new { success = false, message = "Failed to deduct balance." });
+
+            // Add entry
+            var entry = new ContestEntry
+            {
+                ContestId = contest.Id,
+                MatchId = contest.MatchId,
+                Username = user.Username,
+                TeamId = request.TeamId
+            };
+            await _entryService.Add(entry);
+
+            return Ok(new { success = true, message = "Successfully joined contest." });
+        }
+
+        public class JoinContestRequest
+        {
+            public string ContestId { get; set; } = null!;
+            public string UserId { get; set; } = null!;
+            public string TeamId { get; set; } = null!;
+            public decimal EntryFee { get; set; }
+        }
+
 
     }
 }

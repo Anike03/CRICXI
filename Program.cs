@@ -62,9 +62,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact", policy =>
     {
         policy.WithOrigins(
-            "https://cricxi.vercel.app",  // Vercel production URL
-            "http://localhost:5173"       // Local development
-        )
+    "https://cricxi.vercel.app",
+    "http://localhost:5173",
+    "https://cricxi-git-main-anike03s-projects.vercel.app"
+)
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();

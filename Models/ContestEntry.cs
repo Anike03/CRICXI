@@ -15,5 +15,6 @@ namespace CRICXI.Models
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
         public DateTime EntryDate { get; set; } = DateTime.UtcNow;
         public int Score { get; set; } = 0;
+
     }
 }
